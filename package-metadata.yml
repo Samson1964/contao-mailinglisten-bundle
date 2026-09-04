@@ -1,0 +1,35 @@
+# Quelle fuer die Metadaten im Contao Manager (contao/package-metadata).
+# Aenderungen hier werden in den Fork uebertragen.
+
+de:
+    title: Mailinglisten
+    description: >
+        Betreibt beliebig viele E-Mail-Verteiler. Jede Liste bekommt ein
+        eigenes Postfach; ein Cronjob holt neue Nachrichten per IMAP ab und
+        gibt sie an die Teilnehmer weiter. Nachrichten fremder Absender werden
+        abgewiesen, die Aufnahme laesst sich per Kennwort im Betreff
+        beantragen und wird im Backend freigegeben. Abmeldung, Ablehnungstext,
+        Fusszeile und Betreffkennzeichen sind je Liste einstellbar. Laeuft
+        unter Contao 4.13 und Contao 5.
+    keywords:
+        - Mailingliste
+        - Verteiler
+        - E-Mail
+        - IMAP
+        - Cronjob
+
+en:
+    title: Mailing lists
+    description: >
+        Runs any number of e-mail distributors. Each list gets its own mailbox;
+        a cron job fetches new messages via IMAP and passes them on to the
+        members. Messages from strangers are rejected, membership can be
+        requested with a keyword in the subject line and is approved in the
+        back end. Unsubscribing, rejection text, footer and subject prefix are
+        configurable per list. Runs on Contao 4.13 and Contao 5.
+    keywords:
+        - mailing list
+        - distributor
+        - email
+        - imap
+        - cronjob

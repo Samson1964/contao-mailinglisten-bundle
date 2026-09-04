@@ -1,0 +1,108 @@
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+        public: false
+
+    # --- Verschlüsselung ---------------------------------------------------
+
+    # Der Schlüssel für die Postfach-Kennwörter wird aus APP_SECRET abgeleitet.
+    # Wird dieses Geheimnis ausgetauscht, müssen alle Kennwörter neu eingetragen
+    # werden — das ist der Preis dafür, dass ein Datenbankabzug allein nicht
+    # genügt, um an die Postfächer zu kommen.
+    Schachbulle\ContaoMailinglistenBundle\Sicherheit\Geheimspeicher:
+        arguments:
+            $appSecret: '%kernel.secret%'
+
+    # --- Postfach ----------------------------------------------------------
+
+    Schachbulle\ContaoMailinglistenBundle\Postfach\WebklexPostfachLeser: ~
+
+    # Der Verteiler verlangt die Schnittstelle, nicht die Umsetzung. Wer die
+    # IMAP-Bibliothek austauschen will, richtet hier einen anderen Dienst ein.
+    Schachbulle\ContaoMailinglistenBundle\Postfach\PostfachLeserInterface: '@Schachbulle\ContaoMailinglistenBundle\Postfach\WebklexPostfachLeser'
+
+    # --- Versand -----------------------------------------------------------
+
+    Schachbulle\ContaoMailinglistenBundle\Versand\NachrichtenBauer: ~
+
+    Schachbulle\ContaoMailinglistenBundle\Versand\VersandDienst:
+        arguments:
+            $logger: '@monolog.logger.contao.error'
+
+    # --- Verteilung --------------------------------------------------------
+
+    Schachbulle\ContaoMailinglistenBundle\Verteiler\Kennungspruefer: ~
+
+    Schachbulle\ContaoMailinglistenBundle\Verteiler\Verteiler:
+        arguments:
+            $logger: '@monolog.logger.contao.error'
+
+    # --- Regelmäßiger Lauf -------------------------------------------------
+
+    # `minutely` heißt: bei jedem Cron-Durchgang von Contao. Welche Liste dann
+    # wirklich abgefragt wird, entscheidet deren Feld „Prüfintervall" — der
+    # Dienst-Tag kennt nur ein einziges Intervall für alle.
+    Schachbulle\ContaoMailinglistenBundle\Cron\MailinglistenCron:
+        arguments:
+            $logger: '@monolog.logger.contao.cron'
+        tags:
+            - name: contao.cronjob
+              interval: minutely
+
+    # --- Konsolenbefehl ----------------------------------------------------
+
+    Schachbulle\ContaoMailinglistenBundle\Command\PostfachAbrufenCommand: ~
+
+    # --- Rückrufe des Data Containers --------------------------------------
+
+    # Der Tag hängt an `target` selbsttätig `_callback` an; aus
+    # `fields.imapKennwort.save` wird also `save_callback`. Die Schreibweise
+    # ist in Contao 4.13 und Contao 5 dieselbe.
+    Schachbulle\ContaoMailinglistenBundle\EventListener\TlMailinglisteListener:
+        tags:
+            - name: contao.callback
+              table: tl_mailingliste
+              target: config.onload
+              method: pruefeVoraussetzungen
+            - name: contao.callback
+              table: tl_mailingliste
+              target: list.label.label
+              method: beschriftung
+            - name: contao.callback
+              table: tl_mailingliste
+              target: fields.imapKennwort.load
+              method: kennwortVerbergen
+            - name: contao.callback
+              table: tl_mailingliste
+              target: fields.imapKennwort.save
+              method: imapKennwortSpeichern
+            - name: contao.callback
+              table: tl_mailingliste
+              target: fields.smtpKennwort.load
+              method: kennwortVerbergen
+            - name: contao.callback
+              table: tl_mailingliste
+              target: fields.smtpKennwort.save
+              method: smtpKennwortSpeichern
+
+    # Die beiden Kindtabellen laufen im Elternmodus (MODE_PARENT). Dort gibt es
+    # kein label_callback, sondern das child_record_callback — der Tag hängt
+    # auch hier `_callback` an.
+    Schachbulle\ContaoMailinglistenBundle\EventListener\TlMailinglisteAbonnentListener:
+        tags:
+            - name: contao.callback
+              table: tl_mailingliste_abonnent
+              target: fields.email.save
+              method: adressePruefen
+            - name: contao.callback
+              table: tl_mailingliste_abonnent
+              target: list.sorting.child_record
+              method: kindDatensatz
+
+    Schachbulle\ContaoMailinglistenBundle\EventListener\TlMailinglisteProtokollListener:
+        tags:
+            - name: contao.callback
+              table: tl_mailingliste_protokoll
+              target: list.sorting.child_record
+              method: kindDatensatz

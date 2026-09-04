@@ -1,0 +1,14 @@
+/vendor/
+/composer.lock
+/.phpunit.cache/
+/.phpunit.result.cache
+
+# Private Arbeitsnotizen
+TODO.md
+CLAUDE.md
+
+# Prüfstände und Mitschnitte. Sie enthalten echte E-Mail-Adressen und
+# Zugangsdaten — das gehört nicht in ein öffentliches Repository.
+/.pruefstand/
+*.eml
+*.mbox
