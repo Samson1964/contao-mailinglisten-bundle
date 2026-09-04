@@ -5,3 +5,4 @@ package-metadata.yml export-ignore
 phpunit.xml.dist export-ignore
 tests/ export-ignore
 docs/ export-ignore
+tools/ export-ignore

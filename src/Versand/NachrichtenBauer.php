@@ -229,14 +229,14 @@ class NachrichtenBauer
      * sich ohne Blick ins Postfach entscheiden, ob es sich um Spam handelt
      * oder um jemanden, der aufgenommen werden sollte.
      *
-     * @param MailinglisteModel   $liste   Die ablehnende Liste
+     * @param MailinglistenModel   $liste   Die ablehnende Liste
      * @param EingehendeNachricht $eingang Die abgewiesene Nachricht
      * @param string              $an      Adresse der Betreuung
      * @param string              $grund   Der Grund der Ablehnung im Klartext
      *
      * @return Email Die versandfertige Mitteilung
      */
-    public function ablehnungsMeldung(MailinglisteModel $liste, EingehendeNachricht $eingang, string $an, string $grund): Email
+    public function ablehnungsMeldung(MailinglistenModel $liste, EingehendeNachricht $eingang, string $an, string $grund): Email
     {
         $auszug = trim($eingang->textOderAusHtml());
 

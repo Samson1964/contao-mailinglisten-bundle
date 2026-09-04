@@ -225,12 +225,12 @@ class PostfachAbrufenCommand extends Command
      * ein Fehler der Verteilung aussieht, in Wahrheit aber an den
      * Teilnehmerdaten liegt.
      *
-     * @param MailinglisteModel $liste Die zu untersuchende Liste
+     * @param MailinglistenModel $liste Die zu untersuchende Liste
      * @param SymfonyStyle      $stil  Für die Ausgabe
      *
      * @return void
      */
-    private function teilnehmerZeigen(MailinglisteModel $liste, SymfonyStyle $stil): void
+    private function teilnehmerZeigen(MailinglistenModel $liste, SymfonyStyle $stil): void
     {
         $empfaenger = MailinglistenAbonnentModel::findEmpfaenger((int) $liste->id);
         $alle = MailinglistenAbonnentModel::findBy(['pid=?'], [(int) $liste->id]);

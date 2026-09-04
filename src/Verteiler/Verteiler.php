@@ -406,11 +406,11 @@ class Verteiler
      * — etwa durch ein nachgestelltes Komma — fallen heraus, damit der Versand
      * nicht an einer leeren Empfängeradresse scheitert.
      *
-     * @param MailinglisteModel $liste Die Liste mit dem Feld
+     * @param MailinglistenModel $liste Die Liste mit dem Feld
      *
      * @return string[] Die Adressen, notfalls ein leeres Feld
      */
-    private function betreuungsAdressen(MailinglisteModel $liste): array
+    private function betreuungsAdressen(MailinglistenModel $liste): array
     {
         $roh = trim((string) $liste->benachrichtigung);
 
