@@ -57,6 +57,11 @@ $GLOBALS['TL_DCA']['tl_mailinglisten_protokoll'] = array
 			'panelLayout'             => 'filter;search,limit',
 			'headerFields'            => array('titel', 'adresse'),
 			'child_record_class'      => 'no_padding',
+			// Ohne diesen Schalter setzt Contao vor jede Gruppe eine
+			// Zwischenüberschrift mit dem **Rohwert** des Sortierfeldes — bei
+			// einem Datumsfeld also die nackte Unix-Zeit. Der lesbare
+			// Zeitpunkt steht ohnehin am Anfang jeder Zeile.
+			'disableGrouping'         => true,
 		),
 		'operations' => array
 		(
