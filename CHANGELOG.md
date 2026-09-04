@@ -24,8 +24,12 @@ Erste Fassung.
   verworfen.
 * Add: Verschlüsselung der Postfach-Kennwörter mit libsodium; der Schlüssel
   wird aus `APP_SECRET` abgeleitet, das Kennwort erscheint nie im Formular.
+* Add: Meldung an die Betreuung bei jeder abgewiesenen Nachricht, mit
+  Absender, Betreff, Grund und dem Anfang des Textes; je Liste abschaltbar
+  (`ablehnungMelden`).
 * Add: Konsolenbefehl `contao:mailingliste:abrufen`, mit `--pruefen` für einen
-  Verbindungstest ohne jede Veränderung am Postfach.
+  Verbindungstest ohne jede Veränderung am Postfach. Die Prüfung nennt auch,
+  wie viele Teilnehmer eine Verteilung tatsächlich erreichen würde.
 * Add: Listenkopfzeilen nach RFC 2919 und RFC 2369 (`List-Id`, `List-Post`,
   `Precedence`), Absender immer die Listenadresse — sonst reißt die SPF-Prüfung
   beim Empfänger.

@@ -50,6 +50,7 @@ use Contao\Model\Collection;
  * @property string $benachrichtigung
  * @property string $ablehnungSenden
  * @property string $ablehnungText
+ * @property string $ablehnungMelden
  * @property string $bestaetigungText
  * @property int    $pruefintervall
  * @property int    $hoechstzahl

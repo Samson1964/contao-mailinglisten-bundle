@@ -289,10 +289,8 @@ class Verteiler
 
         $this->versand->versenden($liste, $this->bauer->antragsBestaetigung($liste, $eingang));
 
-        $betreuer = trim((string) $liste->benachrichtigung);
-
-        if ('' !== $betreuer && null === $vorhanden) {
-            foreach (array_filter(array_map('trim', explode(',', $betreuer))) as $adresse) {
+        if (null === $vorhanden) {
+            foreach ($this->betreuungsAdressen($liste) as $adresse) {
                 $this->versand->versenden($liste, $this->bauer->betreuerBenachrichtigung($liste, $eingang, $adresse));
             }
         }
@@ -379,6 +377,15 @@ class Verteiler
             $this->versand->versenden($liste, $this->bauer->ablehnung($liste, $eingang));
         }
 
+        // Die Betreuung erfährt von der Abweisung, sonst bliebe der häufigste
+        // Fall unbemerkt: ein Teilnehmer, der von einer zweiten, nicht
+        // eingetragenen Adresse schreibt.
+        if ($liste->ablehnungMelden) {
+            foreach ($this->betreuungsAdressen($liste) as $adresse) {
+                $this->versand->versenden($liste, $this->bauer->ablehnungsMeldung($liste, $eingang, $adresse, $grund));
+            }
+        }
+
         MailinglistenProtokollModel::protokollieren(
             (int) $liste->id,
             $eingang->messageId,
@@ -390,6 +397,28 @@ class Verteiler
         );
 
         return $this->nachbehandlungVon($liste);
+    }
+
+    /**
+     * Zerlegt das Feld „Benachrichtigung an" in einzelne Adressen.
+     *
+     * Das Feld nimmt mehrere Adressen durch Komma getrennt auf. Leere Stücke
+     * — etwa durch ein nachgestelltes Komma — fallen heraus, damit der Versand
+     * nicht an einer leeren Empfängeradresse scheitert.
+     *
+     * @param MailinglisteModel $liste Die Liste mit dem Feld
+     *
+     * @return string[] Die Adressen, notfalls ein leeres Feld
+     */
+    private function betreuungsAdressen(MailinglisteModel $liste): array
+    {
+        $roh = trim((string) $liste->benachrichtigung);
+
+        if ('' === $roh) {
+            return [];
+        }
+
+        return array_values(array_filter(array_map('trim', explode(',', $roh))));
     }
 
     /**

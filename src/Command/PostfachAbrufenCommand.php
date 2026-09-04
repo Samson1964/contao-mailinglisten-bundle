@@ -11,6 +11,7 @@ declare(strict_types=1);
 namespace Schachbulle\ContaoMailinglistenBundle\Command;
 
 use Contao\CoreBundle\Framework\ContaoFramework;
+use Schachbulle\ContaoMailinglistenBundle\Model\MailinglistenAbonnentModel;
 use Schachbulle\ContaoMailinglistenBundle\Model\MailinglistenModel;
 use Schachbulle\ContaoMailinglistenBundle\Postfach\Nachbehandlung;
 use Schachbulle\ContaoMailinglistenBundle\Postfach\PostfachFehler;
@@ -191,6 +192,8 @@ class PostfachAbrufenCommand extends Command
                     $anzahl,
                     1 === $anzahl ? '' : 'en',
                 ));
+
+                $this->teilnehmerZeigen($liste, $stil);
             } catch (PostfachFehler $e) {
                 ++$fehler;
                 $stil->writeln(sprintf('<error>%s</error>: %s', $liste->titel, $e->getMessage()));
@@ -206,5 +209,67 @@ class PostfachAbrufenCommand extends Command
         $stil->success('Alle Postfächer sind erreichbar.');
 
         return Command::SUCCESS;
+    }
+
+    /**
+     * Zeigt, wen die Liste beim Verteilen tatsächlich erreichen würde.
+     *
+     * Die Angabe beantwortet die häufigste Frage bei einer Liste, die
+     * scheinbar nichts verteilt: Wie viele Teilnehmer hält das Bundle für
+     * empfangsberechtigt? Wer noch auf Freigabe wartet oder den Empfang
+     * abgeschaltet hat, taucht in der Verteilung nicht auf — im Backend ist
+     * das erst zu sehen, wenn man jeden Eintrag einzeln öffnet.
+     *
+     * Bei genau einem Empfänger folgt ein ausdrücklicher Hinweis: Dann
+     * bekommt nur der Verfasser seine eigene Nachricht zurück, was leicht wie
+     * ein Fehler der Verteilung aussieht, in Wahrheit aber an den
+     * Teilnehmerdaten liegt.
+     *
+     * @param MailinglisteModel $liste Die zu untersuchende Liste
+     * @param SymfonyStyle      $stil  Für die Ausgabe
+     *
+     * @return void
+     */
+    private function teilnehmerZeigen(MailinglisteModel $liste, SymfonyStyle $stil): void
+    {
+        $empfaenger = MailinglistenAbonnentModel::findEmpfaenger((int) $liste->id);
+        $alle = MailinglistenAbonnentModel::findBy(['pid=?'], [(int) $liste->id]);
+
+        $anzahlEmpfaenger = null !== $empfaenger ? $empfaenger->count() : 0;
+        $zaehlung = ['aktiv' => 0, 'beantragt' => 0, 'gesperrt' => 0, 'ohneEmpfang' => 0, 'ohneSenderecht' => 0];
+
+        if (null !== $alle) {
+            foreach ($alle as $einzelner) {
+                $zaehlung[$einzelner->status] = ($zaehlung[$einzelner->status] ?? 0) + 1;
+
+                if (MailinglistenAbonnentModel::STATUS_AKTIV === $einzelner->status) {
+                    if (!$einzelner->darfEmpfangen) {
+                        ++$zaehlung['ohneEmpfang'];
+                    }
+
+                    if (!$einzelner->darfSenden) {
+                        ++$zaehlung['ohneSenderecht'];
+                    }
+                }
+            }
+        }
+
+        $stil->writeln(sprintf(
+            '  Teilnehmer: %d aktiv, %d beantragt, %d gesperrt. Empfänger einer Verteilung: <comment>%d</comment>%s%s',
+            $zaehlung['aktiv'],
+            $zaehlung['beantragt'],
+            $zaehlung['gesperrt'],
+            $anzahlEmpfaenger,
+            $zaehlung['ohneEmpfang'] > 0 ? sprintf(' (%d aktive ohne Empfang)', $zaehlung['ohneEmpfang']) : '',
+            $zaehlung['ohneSenderecht'] > 0 ? sprintf(' (%d aktive ohne Senderecht)', $zaehlung['ohneSenderecht']) : '',
+        ));
+
+        if (1 === $anzahlEmpfaenger) {
+            $stil->writeln('  <comment>Nur ein Empfänger: Eine verteilte Nachricht geht dann allein an diese Adresse.</comment>');
+        }
+
+        if (0 === $anzahlEmpfaenger) {
+            $stil->writeln('  <comment>Kein Empfänger: Es würde nichts verteilt.</comment>');
+        }
     }
 }

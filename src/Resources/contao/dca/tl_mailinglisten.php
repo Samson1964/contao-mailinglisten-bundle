@@ -50,6 +50,10 @@ $GLOBALS['TL_DCA']['tl_mailinglisten'] = array
 			'fields'                  => array('titel'),
 			'flag'                    => DataContainer::SORT_ASC,
 			'panelLayout'             => 'search,limit',
+			// Ohne diesen Schalter setzt Contao vor jeden Anfangsbuchstaben
+			// eine Zwischenüberschrift. Bei einer Handvoll Listen zerreißt das
+			// die Übersicht mehr, als es ordnet. Wirkt in 4.13 wie in 5.7.
+			'disableGrouping'         => true,
 		),
 		'label' => array
 		(
@@ -67,20 +71,24 @@ $GLOBALS['TL_DCA']['tl_mailinglisten'] = array
 		),
 		'operations' => array
 		(
+			// Reihenfolge nach Häufigkeit der Benutzung: erst die Liste
+			// selbst, dann ihre Teilnehmer, zuletzt der Verlauf.
+			'edit' => array
+			(
+				'href'                => 'act=edit',
+				'icon'                => 'header.svg',
+			),
 			'teilnehmer' => array
 			(
 				'href'                => 'table=tl_mailinglisten_abonnent',
 				'icon'                => 'mgroup.svg',
 			),
+			// Eigenes Symbol statt show.svg: Letzteres ist in Contao der
+			// Info-Knopf und stand damit zweimal in derselben Zeile.
 			'protokoll' => array
 			(
 				'href'                => 'table=tl_mailinglisten_protokoll',
-				'icon'                => 'show.svg',
-			),
-			'edit' => array
-			(
-				'href'                => 'act=edit',
-				'icon'                => 'header.svg',
+				'icon'                => 'bundles/contaomailinglisten/progress.svg',
 			),
 			'copy' => array
 			(
@@ -114,7 +122,7 @@ $GLOBALS['TL_DCA']['tl_mailinglisten'] = array
 		                               . '{postfach_legend},imapHost,imapPort,imapVerschluesselung,imapBenutzer,imapKennwort,imapOrdner,imapZertifikat,imapNachbehandlung;'
 		                               . '{versand_legend},smtpHost,smtpPort,smtpVerschluesselung,smtpBenutzer,smtpKennwort;'
 		                               . '{verteilung_legend},betreffPraefix,antwortAn,anhaengeUebernehmen,fussnote;'
-		                               . '{aufnahme_legend},aufnahmeKennung,abmeldeKennung,benachrichtigung,bestaetigungText,ablehnungSenden;'
+		                               . '{aufnahme_legend},aufnahmeKennung,abmeldeKennung,benachrichtigung,ablehnungMelden,bestaetigungText,ablehnungSenden;'
 		                               . '{lauf_legend},pruefintervall,hoechstzahl;'
 		                               . '{published_legend},published',
 	),
@@ -343,6 +351,14 @@ $GLOBALS['TL_DCA']['tl_mailinglisten'] = array
 			'inputType'               => 'text',
 			'eval'                    => array('rgxp'=>'emails', 'maxlength'=>255, 'tl_class'=>'w50 clr'),
 			'sql'                     => "varchar(255) NOT NULL default ''",
+		),
+		'ablehnungMelden' => array
+		(
+			'exclude'                 => true,
+			'inputType'               => 'checkbox',
+			'default'                 => '1',
+			'eval'                    => array('tl_class'=>'w50 m12'),
+			'sql'                     => "char(1) NOT NULL default '1'",
 		),
 		'bestaetigungText' => array
 		(

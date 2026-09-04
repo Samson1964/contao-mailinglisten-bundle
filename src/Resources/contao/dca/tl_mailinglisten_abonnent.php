@@ -55,6 +55,10 @@ $GLOBALS['TL_DCA']['tl_mailinglisten_abonnent'] = array
 			'panelLayout'             => 'filter;search,limit',
 			'headerFields'            => array('titel', 'adresse', 'beschreibung'),
 			'child_record_class'      => 'no_padding',
+			// Keine Zwischenüberschrift je Anfangsbuchstabe der Adresse — bei
+			// einer Teilnehmerliste steht der Name im Vordergrund, nicht das
+			// Alphabet. Wirkt in 4.13 wie in 5.7.
+			'disableGrouping'         => true,
 		),
 		'global_operations' => array
 		(
@@ -121,7 +125,7 @@ $GLOBALS['TL_DCA']['tl_mailinglisten_abonnent'] = array
 			'exclude'                 => true,
 			'search'                  => true,
 			'inputType'               => 'text',
-			'eval'                    => array('mandatory'=>true, 'rgxp'=>'email', 'maxlength'=>255, 'tl_class'=>'w50'),
+			'eval'                    => array('mandatory'=>true, 'rgxp'=>'email', 'maxlength'=>255, 'tl_class'=>'long'),
 			'sql'                     => "varchar(255) NOT NULL default ''",
 		),
 		'vorname' => array
@@ -129,7 +133,7 @@ $GLOBALS['TL_DCA']['tl_mailinglisten_abonnent'] = array
 			'exclude'                 => true,
 			'search'                  => true,
 			'inputType'               => 'text',
-			'eval'                    => array('maxlength'=>128, 'tl_class'=>'w50'),
+			'eval'                    => array('maxlength'=>128, 'tl_class'=>'w50 clr'),
 			'sql'                     => "varchar(128) NOT NULL default ''",
 		),
 		'nachname' => array
@@ -157,7 +161,7 @@ $GLOBALS['TL_DCA']['tl_mailinglisten_abonnent'] = array
 			'filter'                  => true,
 			'inputType'               => 'checkbox',
 			'default'                 => '1',
-			'eval'                    => array('tl_class'=>'w50 m12'),
+			'eval'                    => array('tl_class'=>'w50 clr m12'),
 			'sql'                     => "char(1) NOT NULL default '1'",
 		),
 		'darfEmpfangen' => array

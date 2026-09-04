@@ -218,6 +218,67 @@ class NachrichtenBauer
     }
 
     /**
+     * Baut die Mitteilung an die Betreuung über eine abgewiesene Nachricht.
+     *
+     * Ohne diese Mitteilung bleibt eine Ablehnung unbemerkt, bis jemand von
+     * sich aus in den Verlauf sieht. Gerade der häufigste Fall — ein
+     * Teilnehmer schreibt von einer zweiten, nicht eingetragenen Adresse —
+     * fällt dann niemandem auf, und der Absender wartet vergeblich.
+     *
+     * Die Mitteilung enthält den Anfang des Nachrichtentextes. Damit lässt
+     * sich ohne Blick ins Postfach entscheiden, ob es sich um Spam handelt
+     * oder um jemanden, der aufgenommen werden sollte.
+     *
+     * @param MailinglisteModel   $liste   Die ablehnende Liste
+     * @param EingehendeNachricht $eingang Die abgewiesene Nachricht
+     * @param string              $an      Adresse der Betreuung
+     * @param string              $grund   Der Grund der Ablehnung im Klartext
+     *
+     * @return Email Die versandfertige Mitteilung
+     */
+    public function ablehnungsMeldung(MailinglisteModel $liste, EingehendeNachricht $eingang, string $an, string $grund): Email
+    {
+        $auszug = trim($eingang->textOderAusHtml());
+
+        if (mb_strlen($auszug) > 500) {
+            $auszug = mb_substr($auszug, 0, 500).' […]';
+        }
+
+        $text = sprintf(
+            "Die Mailingliste \"%s\" hat eine Nachricht abgewiesen.\n\n"
+            ."Absender: %s%s\n"
+            ."Betreff:  %s\n"
+            ."Grund:    %s\n\n"
+            ."%s\n\n"
+            ."--\n"
+            ."Wenn der Absender aufgenommen werden soll, lässt er sich im Backend "
+            ."unter Mailinglisten als Teilnehmer eintragen. Diese Mitteilung lässt "
+            ."sich an der Liste abschalten.",
+            $liste->titel,
+            $eingang->absender,
+            '' !== $eingang->absenderName ? ' ('.$eingang->absenderName.')' : '',
+            '' !== $eingang->betreff ? $eingang->betreff : '(ohne Betreff)',
+            $grund,
+            '' !== $auszug ? "Anfang der Nachricht:\n\n".$auszug : '(Die Nachricht hatte keinen lesbaren Text.)',
+        );
+
+        $mail = $this->grundgeruest($liste);
+        $mail
+            ->from(new Address((string) $liste->adresse, (string) $liste->titel))
+            ->to($an)
+            ->subject(sprintf('[%s] Abgewiesen: %s', $liste->titel, $eingang->betreff))
+            ->text($text)
+        ;
+
+        // Antworten sollen an den ursprünglichen Absender gehen können, ohne
+        // dass die Betreuung dessen Adresse heraussuchen muss.
+        $mail->replyTo(new Address($eingang->absender, $eingang->absenderName ?: $eingang->absender));
+        $mail->getHeaders()->addTextHeader('Auto-Submitted', 'auto-generated');
+
+        return $mail;
+    }
+
+    /**
      * Legt die Kopfzeilen an, die jede Nachricht dieser Liste tragen muss.
      *
      * `List-Id` und `List-Post` sind die in RFC 2919 und RFC 2369
