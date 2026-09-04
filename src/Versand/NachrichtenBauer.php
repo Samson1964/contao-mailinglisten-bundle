@@ -10,8 +10,8 @@ declare(strict_types=1);
 
 namespace Schachbulle\ContaoMailinglistenBundle\Versand;
 
-use Schachbulle\ContaoMailinglistenBundle\Model\MailinglisteAbonnentModel;
-use Schachbulle\ContaoMailinglistenBundle\Model\MailinglisteModel;
+use Schachbulle\ContaoMailinglistenBundle\Model\MailinglistenAbonnentModel;
+use Schachbulle\ContaoMailinglistenBundle\Model\MailinglistenModel;
 use Schachbulle\ContaoMailinglistenBundle\Postfach\EingehendeNachricht;
 use Symfony\Component\Mime\Address;
 use Symfony\Component\Mime\Email;
@@ -49,14 +49,14 @@ class NachrichtenBauer
      * Einstellung der Liste: entweder zurück an die Liste, damit ein Gespräch
      * entsteht, oder unmittelbar an den Verfasser.
      *
-     * @param MailinglisteModel             $liste      Die verteilende Liste
+     * @param MailinglistenModel             $liste      Die verteilende Liste
      * @param EingehendeNachricht           $eingang    Die eingegangene Nachricht
-     * @param MailinglisteAbonnentModel     $empfaenger Der Teilnehmer, an den
+     * @param MailinglistenAbonnentModel     $empfaenger Der Teilnehmer, an den
      *                                                  diese Ausfertigung geht
      *
      * @return Email Die versandfertige Nachricht
      */
-    public function verteilung(MailinglisteModel $liste, EingehendeNachricht $eingang, MailinglisteAbonnentModel $empfaenger): Email
+    public function verteilung(MailinglistenModel $liste, EingehendeNachricht $eingang, MailinglistenAbonnentModel $empfaenger): Email
     {
         $mail = $this->grundgeruest($liste);
 
@@ -115,12 +115,12 @@ class NachrichtenBauer
      * erkennen und ihrerseits nicht antworten — ohne sie können zwei
      * Automaten einander endlos beschreiben.
      *
-     * @param MailinglisteModel   $liste   Die ablehnende Liste
+     * @param MailinglistenModel   $liste   Die ablehnende Liste
      * @param EingehendeNachricht $eingang Die abgewiesene Nachricht
      *
      * @return Email Die versandfertige Ablehnung
      */
-    public function ablehnung(MailinglisteModel $liste, EingehendeNachricht $eingang): Email
+    public function ablehnung(MailinglistenModel $liste, EingehendeNachricht $eingang): Email
     {
         $vorlage = trim((string) $liste->ablehnungText);
 
@@ -141,12 +141,12 @@ class NachrichtenBauer
      * dass noch jemand darüber entscheiden muss. Ohne diese Nachricht schickt
      * er den Antrag erfahrungsgemäß mehrfach.
      *
-     * @param MailinglisteModel   $liste   Die beantragte Liste
+     * @param MailinglistenModel   $liste   Die beantragte Liste
      * @param EingehendeNachricht $eingang Der Aufnahmeantrag
      *
      * @return Email Die versandfertige Bestätigung
      */
-    public function antragsBestaetigung(MailinglisteModel $liste, EingehendeNachricht $eingang): Email
+    public function antragsBestaetigung(MailinglistenModel $liste, EingehendeNachricht $eingang): Email
     {
         $vorlage = trim((string) $liste->bestaetigungText);
 
@@ -163,12 +163,12 @@ class NachrichtenBauer
     /**
      * Baut die Bestätigung einer Abmeldung.
      *
-     * @param MailinglisteModel   $liste   Die verlassene Liste
+     * @param MailinglistenModel   $liste   Die verlassene Liste
      * @param EingehendeNachricht $eingang Die Abmeldung
      *
      * @return Email Die versandfertige Bestätigung
      */
-    public function abmeldeBestaetigung(MailinglisteModel $liste, EingehendeNachricht $eingang): Email
+    public function abmeldeBestaetigung(MailinglistenModel $liste, EingehendeNachricht $eingang): Email
     {
         $text = "Sie wurden aus ##liste## ausgetragen.\n\n"
             ."Die Adresse ##absender## erhält ab sofort keine Nachrichten dieser Liste mehr. "
@@ -184,13 +184,13 @@ class NachrichtenBauer
      * Ohne diese Mitteilung bliebe ein Antrag im Backend liegen, bis jemand
      * zufällig hineinsieht. Der Antragsteller wartet dann wochenlang.
      *
-     * @param MailinglisteModel   $liste   Die betroffene Liste
+     * @param MailinglistenModel   $liste   Die betroffene Liste
      * @param EingehendeNachricht $eingang Der Aufnahmeantrag
      * @param string              $an      Adresse der Betreuung
      *
      * @return Email Die versandfertige Mitteilung
      */
-    public function betreuerBenachrichtigung(MailinglisteModel $liste, EingehendeNachricht $eingang, string $an): Email
+    public function betreuerBenachrichtigung(MailinglistenModel $liste, EingehendeNachricht $eingang, string $an): Email
     {
         $text = sprintf(
             "Für die Mailingliste \"%s\" liegt ein Aufnahmeantrag vor.\n\n"
@@ -225,11 +225,11 @@ class NachrichtenBauer
      * darauf ihre Filter auf. Die eigene Kennung dient dem Schleifenschutz:
      * Der Verteiler verwirft jede eingehende Nachricht, die sie schon trägt.
      *
-     * @param MailinglisteModel $liste Die Liste, deren Kennzeichen gesetzt werden
+     * @param MailinglistenModel $liste Die Liste, deren Kennzeichen gesetzt werden
      *
      * @return Email Eine leere Nachricht mit gesetzten Listenkopfzeilen
      */
-    private function grundgeruest(MailinglisteModel $liste): Email
+    private function grundgeruest(MailinglistenModel $liste): Email
     {
         $mail = new Email();
         $kopf = $mail->getHeaders();
@@ -250,14 +250,14 @@ class NachrichtenBauer
     /**
      * Baut eine automatische Antwort an den Absender einer Nachricht.
      *
-     * @param MailinglisteModel   $liste   Die antwortende Liste
+     * @param MailinglistenModel   $liste   Die antwortende Liste
      * @param EingehendeNachricht $eingang Die auslösende Nachricht
      * @param string              $betreff Betreff der Antwort, ohne Präfix
      * @param string              $vorlage Text mit Platzhaltern
      *
      * @return Email Die versandfertige Antwort
      */
-    private function automatischeAntwort(MailinglisteModel $liste, EingehendeNachricht $eingang, string $betreff, string $vorlage): Email
+    private function automatischeAntwort(MailinglistenModel $liste, EingehendeNachricht $eingang, string $betreff, string $vorlage): Email
     {
         $mail = $this->grundgeruest($liste);
         $mail
@@ -282,12 +282,12 @@ class NachrichtenBauer
      * Betreff — nach fünf Antworten wäre vom eigentlichen Thema nichts mehr zu
      * sehen.
      *
-     * @param MailinglisteModel $liste   Liefert das eingestellte Präfix
+     * @param MailinglistenModel $liste   Liefert das eingestellte Präfix
      * @param string            $betreff Der ursprüngliche Betreff
      *
      * @return string Der Betreff mit höchstens einem Präfix
      */
-    private function betreff(MailinglisteModel $liste, string $betreff): string
+    private function betreff(MailinglistenModel $liste, string $betreff): string
     {
         $praefix = trim((string) $liste->betreffPraefix);
 
@@ -310,12 +310,12 @@ class NachrichtenBauer
      * Cron-Kontext hätte weder Seite noch Anfrage zur Verfügung.
      *
      * @param string              $text    Der Baustein mit ##...##-Platzhaltern
-     * @param MailinglisteModel   $liste   Liefert Titel, Adresse und Kennung
+     * @param MailinglistenModel   $liste   Liefert Titel, Adresse und Kennung
      * @param EingehendeNachricht $eingang Liefert Absender und Betreff
      *
      * @return string Der Text mit eingesetzten Werten
      */
-    private function platzhalter(string $text, MailinglisteModel $liste, EingehendeNachricht $eingang): string
+    private function platzhalter(string $text, MailinglistenModel $liste, EingehendeNachricht $eingang): string
     {
         return strtr($text, [
             '##liste##' => (string) $liste->titel,
@@ -336,11 +336,11 @@ class NachrichtenBauer
      * gewonnen; fehlt dort ein „@", springt „lists.invalid" ein, was nach RFC
      * 2606 garantiert nie eine echte Domäne ist.
      *
-     * @param MailinglisteModel $liste Die Liste
+     * @param MailinglistenModel $liste Die Liste
      *
      * @return string Die Kennung in der Form "liste-7.example.org"
      */
-    private function listenKennung(MailinglisteModel $liste): string
+    private function listenKennung(MailinglistenModel $liste): string
     {
         $adresse = (string) $liste->adresse;
         $domaene = substr(strrchr($adresse, '@') ?: '', 1);

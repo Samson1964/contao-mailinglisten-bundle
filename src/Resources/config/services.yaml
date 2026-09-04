@@ -59,50 +59,50 @@ services:
     # Der Tag hängt an `target` selbsttätig `_callback` an; aus
     # `fields.imapKennwort.save` wird also `save_callback`. Die Schreibweise
     # ist in Contao 4.13 und Contao 5 dieselbe.
-    Schachbulle\ContaoMailinglistenBundle\EventListener\TlMailinglisteListener:
+    Schachbulle\ContaoMailinglistenBundle\EventListener\TlMailinglistenListener:
         tags:
             - name: contao.callback
-              table: tl_mailingliste
+              table: tl_mailinglisten
               target: config.onload
               method: pruefeVoraussetzungen
             - name: contao.callback
-              table: tl_mailingliste
+              table: tl_mailinglisten
               target: list.label.label
               method: beschriftung
             - name: contao.callback
-              table: tl_mailingliste
+              table: tl_mailinglisten
               target: fields.imapKennwort.load
               method: kennwortVerbergen
             - name: contao.callback
-              table: tl_mailingliste
+              table: tl_mailinglisten
               target: fields.imapKennwort.save
               method: imapKennwortSpeichern
             - name: contao.callback
-              table: tl_mailingliste
+              table: tl_mailinglisten
               target: fields.smtpKennwort.load
               method: kennwortVerbergen
             - name: contao.callback
-              table: tl_mailingliste
+              table: tl_mailinglisten
               target: fields.smtpKennwort.save
               method: smtpKennwortSpeichern
 
     # Die beiden Kindtabellen laufen im Elternmodus (MODE_PARENT). Dort gibt es
     # kein label_callback, sondern das child_record_callback — der Tag hängt
     # auch hier `_callback` an.
-    Schachbulle\ContaoMailinglistenBundle\EventListener\TlMailinglisteAbonnentListener:
+    Schachbulle\ContaoMailinglistenBundle\EventListener\TlMailinglistenAbonnentListener:
         tags:
             - name: contao.callback
-              table: tl_mailingliste_abonnent
+              table: tl_mailinglisten_abonnent
               target: fields.email.save
               method: adressePruefen
             - name: contao.callback
-              table: tl_mailingliste_abonnent
+              table: tl_mailinglisten_abonnent
               target: list.sorting.child_record
               method: kindDatensatz
 
-    Schachbulle\ContaoMailinglistenBundle\EventListener\TlMailinglisteProtokollListener:
+    Schachbulle\ContaoMailinglistenBundle\EventListener\TlMailinglistenProtokollListener:
         tags:
             - name: contao.callback
-              table: tl_mailingliste_protokoll
+              table: tl_mailinglisten_protokoll
               target: list.sorting.child_record
               method: kindDatensatz

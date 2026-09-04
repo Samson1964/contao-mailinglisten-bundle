@@ -33,12 +33,12 @@ use Contao\Model\Collection;
  * @property int    $beigetreten
  * @property string $notiz
  *
- * @method static MailinglisteAbonnentModel|null findByPk($id, array $opt = array())
- * @method static MailinglisteAbonnentModel|null findOneBy($col, $val, array $opt = array())
- * @method static Collection|MailinglisteAbonnentModel[]|null findAll(array $opt = array())
- * @method static Collection|MailinglisteAbonnentModel[]|null findBy($col, $val, array $opt = array())
+ * @method static MailinglistenAbonnentModel|null findByPk($id, array $opt = array())
+ * @method static MailinglistenAbonnentModel|null findOneBy($col, $val, array $opt = array())
+ * @method static Collection|MailinglistenAbonnentModel[]|null findAll(array $opt = array())
+ * @method static Collection|MailinglistenAbonnentModel[]|null findBy($col, $val, array $opt = array())
  */
-class MailinglisteAbonnentModel extends Model
+class MailinglistenAbonnentModel extends Model
 {
     /**
      * Der Teilnehmer ist aufgenommen und nimmt am Verkehr teil.
@@ -67,7 +67,7 @@ class MailinglisteAbonnentModel extends Model
      *
      * @var string
      */
-    protected static $strTable = 'tl_mailingliste_abonnent';
+    protected static $strTable = 'tl_mailinglisten_abonnent';
 
     /**
      * Sucht einen Teilnehmer einer Liste anhand seiner E-Mail-Adresse.
@@ -80,7 +80,7 @@ class MailinglisteAbonnentModel extends Model
      * @param int    $pid   ID der Mailingliste
      * @param string $email Die gesuchte Adresse, Schreibweise beliebig
      *
-     * @return MailinglisteAbonnentModel|null Der Teilnehmer in beliebigem
+     * @return MailinglistenAbonnentModel|null Der Teilnehmer in beliebigem
      *                                        Status, oder null
      */
     public static function findByListeUndEmail(int $pid, string $email): ?self
@@ -103,7 +103,7 @@ class MailinglisteAbonnentModel extends Model
      *
      * @param int $pid ID der Mailingliste
      *
-     * @return Collection|MailinglisteAbonnentModel[]|null Die Empfänger, oder
+     * @return Collection|MailinglistenAbonnentModel[]|null Die Empfänger, oder
      *                                                     null wenn keiner in
      *                                                     Frage kommt
      */

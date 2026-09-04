@@ -20,7 +20,7 @@ use Contao\System;
  * erreicht — gehört sichtbar in dieselbe Zeile, statt sich hinter der
  * Detailansicht zu verstecken.
  */
-class TlMailinglisteProtokollListener
+class TlMailinglistenProtokollListener
 {
     /**
      * Stellt einen Protokolleintrag in der Übersicht dar.
@@ -31,10 +31,10 @@ class TlMailinglisteProtokollListener
      */
     public function kindDatensatz(array $row): string
     {
-        System::loadLanguageFile('tl_mailingliste_protokoll');
+        System::loadLanguageFile('tl_mailinglisten_protokoll');
 
         $aktion = (string) $row['aktion'];
-        $beschriftung = $GLOBALS['TL_LANG']['tl_mailingliste_protokoll']['aktionen'][$aktion] ?? $aktion;
+        $beschriftung = $GLOBALS['TL_LANG']['tl_mailinglisten_protokoll']['aktionen'][$aktion] ?? $aktion;
 
         $farbe = match ($aktion) {
             'verteilt' => '#4a8f2a',

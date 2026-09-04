@@ -34,12 +34,12 @@ use Contao\Model\Collection;
  * @property string $meldung
  * @property int    $datum
  *
- * @method static MailinglisteProtokollModel|null findByPk($id, array $opt = array())
- * @method static MailinglisteProtokollModel|null findOneBy($col, $val, array $opt = array())
- * @method static Collection|MailinglisteProtokollModel[]|null findAll(array $opt = array())
- * @method static Collection|MailinglisteProtokollModel[]|null findBy($col, $val, array $opt = array())
+ * @method static MailinglistenProtokollModel|null findByPk($id, array $opt = array())
+ * @method static MailinglistenProtokollModel|null findOneBy($col, $val, array $opt = array())
+ * @method static Collection|MailinglistenProtokollModel[]|null findAll(array $opt = array())
+ * @method static Collection|MailinglistenProtokollModel[]|null findBy($col, $val, array $opt = array())
  */
-class MailinglisteProtokollModel extends Model
+class MailinglistenProtokollModel extends Model
 {
     /**
      * Die Nachricht wurde an die Teilnehmer weitergegeben.
@@ -79,7 +79,7 @@ class MailinglisteProtokollModel extends Model
      *
      * @var string
      */
-    protected static $strTable = 'tl_mailingliste_protokoll';
+    protected static $strTable = 'tl_mailinglisten_protokoll';
 
     /**
      * Prüft, ob eine Nachricht mit dieser Message-ID schon behandelt wurde.

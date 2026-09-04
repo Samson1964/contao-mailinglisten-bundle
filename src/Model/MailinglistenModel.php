@@ -56,19 +56,19 @@ use Contao\Model\Collection;
  * @property int    $letztePruefung
  * @property string $published
  *
- * @method static MailinglisteModel|null findByPk($id, array $opt = array())
- * @method static MailinglisteModel|null findOneBy($col, $val, array $opt = array())
- * @method static Collection|MailinglisteModel[]|null findAll(array $opt = array())
- * @method static Collection|MailinglisteModel[]|null findBy($col, $val, array $opt = array())
+ * @method static MailinglistenModel|null findByPk($id, array $opt = array())
+ * @method static MailinglistenModel|null findOneBy($col, $val, array $opt = array())
+ * @method static Collection|MailinglistenModel[]|null findAll(array $opt = array())
+ * @method static Collection|MailinglistenModel[]|null findBy($col, $val, array $opt = array())
  */
-class MailinglisteModel extends Model
+class MailinglistenModel extends Model
 {
     /**
      * Name der zugehörigen Datenbanktabelle.
      *
      * @var string
      */
-    protected static $strTable = 'tl_mailingliste';
+    protected static $strTable = 'tl_mailinglisten';
 
     /**
      * Findet alle veröffentlichten Listen, sortiert nach Titel.
@@ -80,7 +80,7 @@ class MailinglisteModel extends Model
      *
      * @param array<string, mixed> $opt Zusätzliche Abfrageoptionen von Contao
      *
-     * @return Collection|MailinglisteModel[]|null Die Listen, oder null wenn
+     * @return Collection|MailinglistenModel[]|null Die Listen, oder null wenn
      *                                             keine veröffentlicht ist
      */
     public static function findAktive(array $opt = [])

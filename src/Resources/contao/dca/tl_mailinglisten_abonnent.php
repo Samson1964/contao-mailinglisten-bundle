@@ -12,7 +12,7 @@ use Contao\DataContainer;
 use Contao\DC_Table;
 
 /*
- * Definition der Tabelle tl_mailingliste_abonnent.
+ * Definition der Tabelle tl_mailinglisten_abonnent.
  *
  * Die Teilnehmer einer Mailingliste. Der Status entscheidet über alles
  * Weitere: Nur „aktiv" nimmt am Verkehr teil, „beantragt" wartet auf die
@@ -24,13 +24,13 @@ use Contao\DC_Table;
  * Einreicher, etwa ein Formular, das Meldungen an die Liste schickt, ohne die
  * Antworten zu bekommen.
  */
-$GLOBALS['TL_DCA']['tl_mailingliste_abonnent'] = array
+$GLOBALS['TL_DCA']['tl_mailinglisten_abonnent'] = array
 (
 	// Config
 	'config' => array
 	(
 		'dataContainer'               => DC_Table::class,
-		'ptable'                      => 'tl_mailingliste',
+		'ptable'                      => 'tl_mailinglisten',
 		'enableVersioning'            => true,
 		'sql' => array
 		(
@@ -108,7 +108,7 @@ $GLOBALS['TL_DCA']['tl_mailingliste_abonnent'] = array
 		),
 		'pid' => array
 		(
-			'foreignKey'              => 'tl_mailingliste.titel',
+			'foreignKey'              => 'tl_mailinglisten.titel',
 			'sql'                     => "int(10) unsigned NOT NULL default 0",
 			'relation'                => array('type'=>'belongsTo', 'load'=>'lazy'),
 		),
@@ -147,7 +147,7 @@ $GLOBALS['TL_DCA']['tl_mailingliste_abonnent'] = array
 			'inputType'               => 'select',
 			'default'                 => 'aktiv',
 			'options'                 => array('aktiv', 'beantragt', 'gesperrt'),
-			'reference'               => &$GLOBALS['TL_LANG']['tl_mailingliste_abonnent']['statusWerte'],
+			'reference'               => &$GLOBALS['TL_LANG']['tl_mailinglisten_abonnent']['statusWerte'],
 			'eval'                    => array('tl_class'=>'w50'),
 			'sql'                     => "varchar(16) NOT NULL default 'aktiv'",
 		),

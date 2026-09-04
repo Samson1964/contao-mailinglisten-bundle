@@ -8,9 +8,9 @@ declare(strict_types=1);
  * @license LGPL-3.0-or-later
  */
 
-use Schachbulle\ContaoMailinglistenBundle\Model\MailinglisteAbonnentModel;
-use Schachbulle\ContaoMailinglistenBundle\Model\MailinglisteModel;
-use Schachbulle\ContaoMailinglistenBundle\Model\MailinglisteProtokollModel;
+use Schachbulle\ContaoMailinglistenBundle\Model\MailinglistenAbonnentModel;
+use Schachbulle\ContaoMailinglistenBundle\Model\MailinglistenModel;
+use Schachbulle\ContaoMailinglistenBundle\Model\MailinglistenProtokollModel;
 
 /*
  * Diese Datei wird von Contao 4.13 und Contao 5.7 gleichermaßen gelesen.
@@ -31,7 +31,7 @@ use Schachbulle\ContaoMailinglistenBundle\Model\MailinglisteProtokollModel;
  */
 $GLOBALS['BE_MOD']['content']['mailingliste'] = array
 (
-	'tables' => array('tl_mailingliste', 'tl_mailingliste_abonnent', 'tl_mailingliste_protokoll'),
+	'tables' => array('tl_mailinglisten', 'tl_mailinglisten_abonnent', 'tl_mailinglisten_protokoll'),
 );
 
 /*
@@ -40,6 +40,6 @@ $GLOBALS['BE_MOD']['content']['mailingliste'] = array
  * Ohne diese Zuordnung liefert `Model::getClassFromTable()` keine Klasse, und
  * die Beziehungen zwischen den Tabellen (`relation`) blieben unaufgelöst.
  */
-$GLOBALS['TL_MODELS']['tl_mailingliste'] = MailinglisteModel::class;
-$GLOBALS['TL_MODELS']['tl_mailingliste_abonnent'] = MailinglisteAbonnentModel::class;
-$GLOBALS['TL_MODELS']['tl_mailingliste_protokoll'] = MailinglisteProtokollModel::class;
+$GLOBALS['TL_MODELS']['tl_mailinglisten'] = MailinglistenModel::class;
+$GLOBALS['TL_MODELS']['tl_mailinglisten_abonnent'] = MailinglistenAbonnentModel::class;
+$GLOBALS['TL_MODELS']['tl_mailinglisten_protokoll'] = MailinglistenProtokollModel::class;

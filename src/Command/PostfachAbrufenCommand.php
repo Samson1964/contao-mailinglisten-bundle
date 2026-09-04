@@ -11,7 +11,7 @@ declare(strict_types=1);
 namespace Schachbulle\ContaoMailinglistenBundle\Command;
 
 use Contao\CoreBundle\Framework\ContaoFramework;
-use Schachbulle\ContaoMailinglistenBundle\Model\MailinglisteModel;
+use Schachbulle\ContaoMailinglistenBundle\Model\MailinglistenModel;
 use Schachbulle\ContaoMailinglistenBundle\Postfach\Nachbehandlung;
 use Schachbulle\ContaoMailinglistenBundle\Postfach\PostfachFehler;
 use Schachbulle\ContaoMailinglistenBundle\Postfach\PostfachLeserInterface;
@@ -138,17 +138,17 @@ class PostfachAbrufenCommand extends Command
      *
      * @param string|null $argument Die ID aus der Befehlszeile, oder null
      *
-     * @return MailinglisteModel[] Die gefundenen Listen, notfalls leer
+     * @return MailinglistenModel[] Die gefundenen Listen, notfalls leer
      */
     private function listenErmitteln(?string $argument): array
     {
         if (null !== $argument && '' !== $argument) {
-            $liste = MailinglisteModel::findByPk((int) $argument);
+            $liste = MailinglistenModel::findByPk((int) $argument);
 
             return null !== $liste ? [$liste] : [];
         }
 
-        $listen = MailinglisteModel::findAktive();
+        $listen = MailinglistenModel::findAktive();
 
         return null !== $listen ? $listen->getModels() : [];
     }
@@ -160,7 +160,7 @@ class PostfachAbrufenCommand extends Command
      * Postfach unverändert: nichts wird als gelesen markiert, verschoben,
      * gelöscht oder verteilt. Der Befehl lässt sich also gefahrlos wiederholen.
      *
-     * @param MailinglisteModel[] $listen Die zu prüfenden Listen
+     * @param MailinglistenModel[] $listen Die zu prüfenden Listen
      * @param SymfonyStyle        $stil   Für die Ausgabe
      *
      * @return int Command::SUCCESS, wenn alle Postfächer erreichbar waren

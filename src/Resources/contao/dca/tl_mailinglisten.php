@@ -12,25 +12,25 @@ use Contao\DataContainer;
 use Contao\DC_Table;
 
 /*
- * Definition der Tabelle tl_mailingliste.
+ * Definition der Tabelle tl_mailinglisten.
  *
  * Eine Mailingliste bündelt drei Dinge: den Zugang zu einem Postfach, den Weg
  * für den Versand und die Regeln, nach denen eingehende Nachrichten behandelt
- * werden. Die Teilnehmer stehen in tl_mailingliste_abonnent, der Verlauf in
- * tl_mailingliste_protokoll.
+ * werden. Die Teilnehmer stehen in tl_mailinglisten_abonnent, der Verlauf in
+ * tl_mailinglisten_protokoll.
  *
  * Die beiden Kennwortfelder enthalten in der Datenbank verschlüsselte Werte.
  * Im Formular erscheint statt des Kennworts eine Reihe Sternchen; wird sie
  * unverändert gelassen, bleibt das gespeicherte Kennwort bestehen. Ein leeres
  * Feld löscht es.
  */
-$GLOBALS['TL_DCA']['tl_mailingliste'] = array
+$GLOBALS['TL_DCA']['tl_mailinglisten'] = array
 (
 	// Config
 	'config' => array
 	(
 		'dataContainer'               => DC_Table::class,
-		'ctable'                      => array('tl_mailingliste_abonnent', 'tl_mailingliste_protokoll'),
+		'ctable'                      => array('tl_mailinglisten_abonnent', 'tl_mailinglisten_protokoll'),
 		'enableVersioning'            => true,
 		'sql' => array
 		(
@@ -69,12 +69,12 @@ $GLOBALS['TL_DCA']['tl_mailingliste'] = array
 		(
 			'teilnehmer' => array
 			(
-				'href'                => 'table=tl_mailingliste_abonnent',
+				'href'                => 'table=tl_mailinglisten_abonnent',
 				'icon'                => 'mgroup.svg',
 			),
 			'protokoll' => array
 			(
-				'href'                => 'table=tl_mailingliste_protokoll',
+				'href'                => 'table=tl_mailinglisten_protokoll',
 				'icon'                => 'show.svg',
 			),
 			'edit' => array
@@ -187,7 +187,7 @@ $GLOBALS['TL_DCA']['tl_mailingliste'] = array
 			'inputType'               => 'select',
 			'default'                 => 'ssl',
 			'options'                 => array('ssl', 'tls', 'keine'),
-			'reference'               => &$GLOBALS['TL_LANG']['tl_mailingliste']['verschluesselung'],
+			'reference'               => &$GLOBALS['TL_LANG']['tl_mailinglisten']['verschluesselung'],
 			'eval'                    => array('tl_class'=>'w50'),
 			'sql'                     => "varchar(8) NOT NULL default 'ssl'",
 		),
@@ -230,7 +230,7 @@ $GLOBALS['TL_DCA']['tl_mailingliste'] = array
 			'inputType'               => 'select',
 			'default'                 => 'gelesen',
 			'options'                 => array('gelesen', 'verschieben', 'loeschen'),
-			'reference'               => &$GLOBALS['TL_LANG']['tl_mailingliste']['nachbehandlung'],
+			'reference'               => &$GLOBALS['TL_LANG']['tl_mailinglisten']['nachbehandlung'],
 			'eval'                    => array('submitOnChange'=>true, 'tl_class'=>'w50 clr'),
 			'sql'                     => "varchar(16) NOT NULL default 'gelesen'",
 		),
@@ -265,7 +265,7 @@ $GLOBALS['TL_DCA']['tl_mailingliste'] = array
 			'inputType'               => 'select',
 			'default'                 => 'tls',
 			'options'                 => array('ssl', 'tls', 'keine'),
-			'reference'               => &$GLOBALS['TL_LANG']['tl_mailingliste']['verschluesselung'],
+			'reference'               => &$GLOBALS['TL_LANG']['tl_mailinglisten']['verschluesselung'],
 			'eval'                    => array('tl_class'=>'w50'),
 			'sql'                     => "varchar(8) NOT NULL default 'tls'",
 		),
@@ -299,7 +299,7 @@ $GLOBALS['TL_DCA']['tl_mailingliste'] = array
 			'inputType'               => 'select',
 			'default'                 => 'liste',
 			'options'                 => array('liste', 'absender'),
-			'reference'               => &$GLOBALS['TL_LANG']['tl_mailingliste']['antwortZiel'],
+			'reference'               => &$GLOBALS['TL_LANG']['tl_mailinglisten']['antwortZiel'],
 			'eval'                    => array('tl_class'=>'w50'),
 			'sql'                     => "varchar(16) NOT NULL default 'liste'",
 		),

@@ -12,7 +12,7 @@ use Contao\DataContainer;
 use Contao\DC_Table;
 
 /*
- * Definition der Tabelle tl_mailingliste_protokoll.
+ * Definition der Tabelle tl_mailinglisten_protokoll.
  *
  * Der Verlauf einer Mailingliste. Die Einträge entstehen ausschließlich beim
  * Cron-Lauf; im Backend lassen sie sich ansehen und löschen, aber nicht
@@ -24,13 +24,13 @@ use Contao\DC_Table;
  * Lesezeichen abbricht. Wer hier aufräumt, sollte deshalb nur alte Einträge
  * löschen, nicht die der letzten Tage.
  */
-$GLOBALS['TL_DCA']['tl_mailingliste_protokoll'] = array
+$GLOBALS['TL_DCA']['tl_mailinglisten_protokoll'] = array
 (
 	// Config
 	'config' => array
 	(
 		'dataContainer'               => DC_Table::class,
-		'ptable'                      => 'tl_mailingliste',
+		'ptable'                      => 'tl_mailinglisten',
 		'closed'                      => true,
 		'notEditable'                 => true,
 		'notCopyable'                 => true,
@@ -83,7 +83,7 @@ $GLOBALS['TL_DCA']['tl_mailingliste_protokoll'] = array
 		),
 		'pid' => array
 		(
-			'foreignKey'              => 'tl_mailingliste.titel',
+			'foreignKey'              => 'tl_mailinglisten.titel',
 			'sql'                     => "int(10) unsigned NOT NULL default 0",
 			'relation'                => array('type'=>'belongsTo', 'load'=>'lazy'),
 		),
@@ -117,7 +117,7 @@ $GLOBALS['TL_DCA']['tl_mailingliste_protokoll'] = array
 		'aktion' => array
 		(
 			'filter'                  => true,
-			'reference'               => &$GLOBALS['TL_LANG']['tl_mailingliste_protokoll']['aktionen'],
+			'reference'               => &$GLOBALS['TL_LANG']['tl_mailinglisten_protokoll']['aktionen'],
 			'sql'                     => "varchar(16) NOT NULL default ''",
 		),
 		'empfaenger' => array

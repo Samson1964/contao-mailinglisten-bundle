@@ -12,7 +12,7 @@ namespace Schachbulle\ContaoMailinglistenBundle\Cron;
 
 use Contao\CoreBundle\Framework\ContaoFramework;
 use Psr\Log\LoggerInterface;
-use Schachbulle\ContaoMailinglistenBundle\Model\MailinglisteModel;
+use Schachbulle\ContaoMailinglistenBundle\Model\MailinglistenModel;
 use Schachbulle\ContaoMailinglistenBundle\Versand\VersandDienst;
 use Schachbulle\ContaoMailinglistenBundle\Verteiler\Verteilergebnis;
 use Schachbulle\ContaoMailinglistenBundle\Verteiler\Verteiler;
@@ -70,7 +70,7 @@ class MailinglistenCron
     {
         $this->framework->initialize();
 
-        $listen = MailinglisteModel::findAktive();
+        $listen = MailinglistenModel::findAktive();
 
         if (null === $listen) {
             return;

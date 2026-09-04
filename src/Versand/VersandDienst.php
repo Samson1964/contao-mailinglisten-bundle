@@ -11,7 +11,7 @@ declare(strict_types=1);
 namespace Schachbulle\ContaoMailinglistenBundle\Versand;
 
 use Psr\Log\LoggerInterface;
-use Schachbulle\ContaoMailinglistenBundle\Model\MailinglisteModel;
+use Schachbulle\ContaoMailinglistenBundle\Model\MailinglistenModel;
 use Schachbulle\ContaoMailinglistenBundle\Sicherheit\Geheimspeicher;
 use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 use Symfony\Component\Mailer\MailerInterface;
@@ -70,14 +70,14 @@ class VersandDienst
      * aber nicht weitergereicht: Eine einzige tote Adresse darf nicht
      * verhindern, dass die übrigen Teilnehmer die Nachricht bekommen.
      *
-     * @param MailinglisteModel $liste Die Liste, über deren Zugang versendet wird
+     * @param MailinglistenModel $liste Die Liste, über deren Zugang versendet wird
      * @param Email             $mail  Die vollständige Nachricht mit Absender,
      *                                 Empfänger, Betreff und Inhalt
      *
      * @return bool true, wenn die Nachricht an den Server übergeben wurde;
      *              false bei einem Versandfehler
      */
-    public function versenden(MailinglisteModel $liste, Email $mail): bool
+    public function versenden(MailinglistenModel $liste, Email $mail): bool
     {
         try {
             $transport = $this->transportFuer($liste);
@@ -137,13 +137,13 @@ class VersandDienst
      * führt bei Port 587 zum nachträglichen STARTTLS, `false` schaltet die
      * eingebaute TLS-Aushandlung ab.
      *
-     * @param MailinglisteModel $liste Die Liste mit den SMTP-Angaben
+     * @param MailinglistenModel $liste Die Liste mit den SMTP-Angaben
      *
      * @return TransportInterface|null Der Transport, oder null wenn kein
      *                                 eigener SMTP-Zugang hinterlegt ist und
      *                                 der Contao-Mailer benutzt werden soll
      */
-    private function transportFuer(MailinglisteModel $liste): ?TransportInterface
+    private function transportFuer(MailinglistenModel $liste): ?TransportInterface
     {
         $id = (int) $liste->id;
 

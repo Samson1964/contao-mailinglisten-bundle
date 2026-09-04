@@ -11,9 +11,9 @@ declare(strict_types=1);
 namespace Schachbulle\ContaoMailinglistenBundle\Verteiler;
 
 use Psr\Log\LoggerInterface;
-use Schachbulle\ContaoMailinglistenBundle\Model\MailinglisteAbonnentModel;
-use Schachbulle\ContaoMailinglistenBundle\Model\MailinglisteModel;
-use Schachbulle\ContaoMailinglistenBundle\Model\MailinglisteProtokollModel;
+use Schachbulle\ContaoMailinglistenBundle\Model\MailinglistenAbonnentModel;
+use Schachbulle\ContaoMailinglistenBundle\Model\MailinglistenModel;
+use Schachbulle\ContaoMailinglistenBundle\Model\MailinglistenProtokollModel;
 use Schachbulle\ContaoMailinglistenBundle\Postfach\EingehendeNachricht;
 use Schachbulle\ContaoMailinglistenBundle\Postfach\Nachbehandlung;
 use Schachbulle\ContaoMailinglistenBundle\Postfach\PostfachFehler;
@@ -73,14 +73,14 @@ class Verteiler
      * erreichbaren Server im Minutentakt eine neue Verbindung und füllte das
      * Fehlerprotokoll.
      *
-     * @param MailinglisteModel $liste Die abzuarbeitende Liste
+     * @param MailinglistenModel $liste Die abzuarbeitende Liste
      *
      * @return Verteilergebnis Die Zählung dieses Durchgangs. Bei einem
      *                         Postfachfehler steht dort ein Fehler und sonst
      *                         nichts; die Ausnahme wird nicht weitergereicht,
      *                         damit die übrigen Listen an die Reihe kommen.
      */
-    public function listeVerarbeiten(MailinglisteModel $liste): Verteilergebnis
+    public function listeVerarbeiten(MailinglistenModel $liste): Verteilergebnis
     {
         $ergebnis = new Verteilergebnis();
 
@@ -98,12 +98,12 @@ class Verteiler
         } catch (PostfachFehler $e) {
             $this->logger->error(sprintf('Mailingliste "%s": %s', $liste->titel, $e->getMessage()));
 
-            MailinglisteProtokollModel::protokollieren(
+            MailinglistenProtokollModel::protokollieren(
                 (int) $liste->id,
                 '',
                 '',
                 '',
-                MailinglisteProtokollModel::AKTION_FEHLER,
+                MailinglistenProtokollModel::AKTION_FEHLER,
                 0,
                 $e->getMessage(),
             );
@@ -120,7 +120,7 @@ class Verteiler
     /**
      * Entscheidet über eine einzelne Nachricht und führt die Entscheidung aus.
      *
-     * @param MailinglisteModel   $liste   Die verarbeitende Liste
+     * @param MailinglistenModel   $liste   Die verarbeitende Liste
      * @param EingehendeNachricht $eingang Die eingegangene Nachricht
      *
      * @return array{0: Nachbehandlung, 1: Verteilergebnis} Was mit der
@@ -129,7 +129,7 @@ class Verteiler
      *                                                      soll, und die
      *                                                      Zählung dazu
      */
-    private function nachrichtVerarbeiten(MailinglisteModel $liste, EingehendeNachricht $eingang): array
+    private function nachrichtVerarbeiten(MailinglistenModel $liste, EingehendeNachricht $eingang): array
     {
         $pid = (int) $liste->id;
         $gelesen = new Verteilergebnis(gelesen: 1);
@@ -142,12 +142,12 @@ class Verteiler
 
             // 2. Abwesenheitsnotizen, Unzustellbarkeitsberichte und ähnliches.
             if ($eingang->istAutomatisch()) {
-                MailinglisteProtokollModel::protokollieren(
+                MailinglistenProtokollModel::protokollieren(
                     $pid,
                     $eingang->messageId,
                     $eingang->absender,
                     $eingang->betreff,
-                    MailinglisteProtokollModel::AKTION_IGNORIERT,
+                    MailinglistenProtokollModel::AKTION_IGNORIERT,
                     0,
                     'Maschinell erzeugte Nachricht.',
                 );
@@ -156,11 +156,11 @@ class Verteiler
             }
 
             // 3. Schon einmal behandelt.
-            if (MailinglisteProtokollModel::istBekannt($pid, $eingang->messageId)) {
+            if (MailinglistenProtokollModel::istBekannt($pid, $eingang->messageId)) {
                 return [$this->nachbehandlungVon($liste), $gelesen->plus(new Verteilergebnis(ignoriert: 1))];
             }
 
-            $teilnehmer = MailinglisteAbonnentModel::findByListeUndEmail($pid, $eingang->absender);
+            $teilnehmer = MailinglistenAbonnentModel::findByListeUndEmail($pid, $eingang->absender);
 
             // 4. Abmeldung — muss auch für aktive Teilnehmer greifen.
             if (null !== $teilnehmer && $this->kennung->trifftZu($eingang->betreff, (string) $liste->abmeldeKennung)) {
@@ -185,12 +185,12 @@ class Verteiler
         } catch (\Throwable $e) {
             $this->logger->error(sprintf('Mailingliste "%s": Nachricht von "%s" konnte nicht verarbeitet werden: %s', $liste->titel, $eingang->absender, $e->getMessage()));
 
-            MailinglisteProtokollModel::protokollieren(
+            MailinglistenProtokollModel::protokollieren(
                 $pid,
                 $eingang->messageId,
                 $eingang->absender,
                 $eingang->betreff,
-                MailinglisteProtokollModel::AKTION_FEHLER,
+                MailinglistenProtokollModel::AKTION_FEHLER,
                 0,
                 $e->getMessage(),
             );
@@ -214,14 +214,14 @@ class Verteiler
      * Der Verfasser selbst bekommt seine Nachricht mit — so sieht er, dass sie
      * angekommen ist, und hat den Verlauf vollständig im eigenen Postfach.
      *
-     * @param MailinglisteModel   $liste   Die verteilende Liste
+     * @param MailinglistenModel   $liste   Die verteilende Liste
      * @param EingehendeNachricht $eingang Die zu verteilende Nachricht
      *
      * @return int Anzahl der erfolgreich versendeten Ausfertigungen
      */
-    private function verteilen(MailinglisteModel $liste, EingehendeNachricht $eingang): int
+    private function verteilen(MailinglistenModel $liste, EingehendeNachricht $eingang): int
     {
-        $empfaenger = MailinglisteAbonnentModel::findEmpfaenger((int) $liste->id);
+        $empfaenger = MailinglistenAbonnentModel::findEmpfaenger((int) $liste->id);
         $anzahl = 0;
         $fehlgeschlagen = 0;
 
@@ -235,12 +235,12 @@ class Verteiler
             }
         }
 
-        MailinglisteProtokollModel::protokollieren(
+        MailinglistenProtokollModel::protokollieren(
             (int) $liste->id,
             $eingang->messageId,
             $eingang->absender,
             $eingang->betreff,
-            MailinglisteProtokollModel::AKTION_VERTEILT,
+            MailinglistenProtokollModel::AKTION_VERTEILT,
             $anzahl,
             $fehlgeschlagen > 0 ? sprintf('%d Zustellungen schlugen fehl.', $fehlgeschlagen) : '',
         );
@@ -256,32 +256,32 @@ class Verteiler
      * aushebeln. Er bekommt dieselbe Bestätigung wie alle anderen, damit die
      * Sperre nicht durch das Ausbleiben einer Antwort erkennbar wird.
      *
-     * @param MailinglisteModel              $liste     Die beantragte Liste
+     * @param MailinglistenModel              $liste     Die beantragte Liste
      * @param EingehendeNachricht            $eingang   Der Antrag
-     * @param MailinglisteAbonnentModel|null $vorhanden Ein bereits bestehender
+     * @param MailinglistenAbonnentModel|null $vorhanden Ein bereits bestehender
      *                                                  Eintrag zu dieser
      *                                                  Adresse, oder null
      *
      * @return Nachbehandlung Was mit der Nachricht im Postfach geschehen soll
      */
-    private function antragAufnehmen(MailinglisteModel $liste, EingehendeNachricht $eingang, ?MailinglisteAbonnentModel $vorhanden): Nachbehandlung
+    private function antragAufnehmen(MailinglistenModel $liste, EingehendeNachricht $eingang, ?MailinglistenAbonnentModel $vorhanden): Nachbehandlung
     {
         $meldung = 'Antrag vorgemerkt.';
 
         if (null === $vorhanden) {
-            $teilnehmer = new MailinglisteAbonnentModel();
+            $teilnehmer = new MailinglistenAbonnentModel();
             $teilnehmer->pid = (int) $liste->id;
             $teilnehmer->tstamp = time();
             $teilnehmer->email = $eingang->absender;
             $teilnehmer->vorname = '';
             $teilnehmer->nachname = $eingang->absenderName;
-            $teilnehmer->status = MailinglisteAbonnentModel::STATUS_BEANTRAGT;
+            $teilnehmer->status = MailinglistenAbonnentModel::STATUS_BEANTRAGT;
             $teilnehmer->darfSenden = '1';
             $teilnehmer->darfEmpfangen = '1';
             $teilnehmer->beigetreten = time();
             $teilnehmer->notiz = sprintf('Antrag per E-Mail am %s, Betreff: %s', date('d.m.Y H:i'), $eingang->betreff);
             $teilnehmer->save();
-        } elseif (MailinglisteAbonnentModel::STATUS_GESPERRT === $vorhanden->status) {
+        } elseif (MailinglistenAbonnentModel::STATUS_GESPERRT === $vorhanden->status) {
             $meldung = 'Antrag einer gesperrten Adresse, Eintrag unverändert gelassen.';
         } else {
             $meldung = 'Antrag einer bereits eingetragenen Adresse, Eintrag unverändert gelassen.';
@@ -297,12 +297,12 @@ class Verteiler
             }
         }
 
-        MailinglisteProtokollModel::protokollieren(
+        MailinglistenProtokollModel::protokollieren(
             (int) $liste->id,
             $eingang->messageId,
             $eingang->absender,
             $eingang->betreff,
-            MailinglisteProtokollModel::AKTION_ANTRAG,
+            MailinglistenProtokollModel::AKTION_ANTRAG,
             0,
             $meldung,
         );
@@ -317,17 +317,17 @@ class Verteiler
      * abmeldet, soll sich später ohne Hürde wieder anmelden können. Eine
      * Sperre bleibt der Betreuung im Backend vorbehalten.
      *
-     * @param MailinglisteModel         $liste      Die verlassene Liste
+     * @param MailinglistenModel         $liste      Die verlassene Liste
      * @param EingehendeNachricht       $eingang    Die Abmeldung
-     * @param MailinglisteAbonnentModel $teilnehmer Der auszutragende Eintrag
+     * @param MailinglistenAbonnentModel $teilnehmer Der auszutragende Eintrag
      *
      * @return Nachbehandlung Was mit der Nachricht im Postfach geschehen soll
      */
-    private function abmelden(MailinglisteModel $liste, EingehendeNachricht $eingang, MailinglisteAbonnentModel $teilnehmer): Nachbehandlung
+    private function abmelden(MailinglistenModel $liste, EingehendeNachricht $eingang, MailinglistenAbonnentModel $teilnehmer): Nachbehandlung
     {
         // Eine gesperrte Adresse bleibt gesperrt; sie durch eine Abmeldung
         // löschen zu lassen, wäre ein bequemer Weg, die Sperre loszuwerden.
-        if (MailinglisteAbonnentModel::STATUS_GESPERRT === $teilnehmer->status) {
+        if (MailinglistenAbonnentModel::STATUS_GESPERRT === $teilnehmer->status) {
             $meldung = 'Abmeldung einer gesperrten Adresse, Eintrag behalten.';
         } else {
             $teilnehmer->delete();
@@ -336,12 +336,12 @@ class Verteiler
 
         $this->versand->versenden($liste, $this->bauer->abmeldeBestaetigung($liste, $eingang));
 
-        MailinglisteProtokollModel::protokollieren(
+        MailinglistenProtokollModel::protokollieren(
             (int) $liste->id,
             $eingang->messageId,
             $eingang->absender,
             $eingang->betreff,
-            MailinglisteProtokollModel::AKTION_ABMELDUNG,
+            MailinglistenProtokollModel::AKTION_ABMELDUNG,
             0,
             $meldung,
         );
@@ -357,21 +357,21 @@ class Verteiler
      * Wahl: Jede Ablehnung an eine gefälschte Absenderadresse belästigt einen
      * Unbeteiligten und schadet dem Ruf des eigenen Mailservers.
      *
-     * @param MailinglisteModel              $liste      Die ablehnende Liste
+     * @param MailinglistenModel              $liste      Die ablehnende Liste
      * @param EingehendeNachricht            $eingang    Die abgewiesene Nachricht
-     * @param MailinglisteAbonnentModel|null $teilnehmer Der Eintrag zur Adresse,
+     * @param MailinglistenAbonnentModel|null $teilnehmer Der Eintrag zur Adresse,
      *                                                    falls einer besteht —
      *                                                    für die Begründung im
      *                                                    Protokoll
      *
      * @return Nachbehandlung Was mit der Nachricht im Postfach geschehen soll
      */
-    private function ablehnen(MailinglisteModel $liste, EingehendeNachricht $eingang, ?MailinglisteAbonnentModel $teilnehmer): Nachbehandlung
+    private function ablehnen(MailinglistenModel $liste, EingehendeNachricht $eingang, ?MailinglistenAbonnentModel $teilnehmer): Nachbehandlung
     {
         $grund = match (true) {
             null === $teilnehmer => 'Absender gehört nicht zur Liste.',
-            MailinglisteAbonnentModel::STATUS_BEANTRAGT === $teilnehmer->status => 'Aufnahmeantrag ist noch nicht freigegeben.',
-            MailinglisteAbonnentModel::STATUS_GESPERRT === $teilnehmer->status => 'Absender ist gesperrt.',
+            MailinglistenAbonnentModel::STATUS_BEANTRAGT === $teilnehmer->status => 'Aufnahmeantrag ist noch nicht freigegeben.',
+            MailinglistenAbonnentModel::STATUS_GESPERRT === $teilnehmer->status => 'Absender ist gesperrt.',
             default => 'Absender hat kein Senderecht.',
         };
 
@@ -379,12 +379,12 @@ class Verteiler
             $this->versand->versenden($liste, $this->bauer->ablehnung($liste, $eingang));
         }
 
-        MailinglisteProtokollModel::protokollieren(
+        MailinglistenProtokollModel::protokollieren(
             (int) $liste->id,
             $eingang->messageId,
             $eingang->absender,
             $eingang->betreff,
-            MailinglisteProtokollModel::AKTION_ABGELEHNT,
+            MailinglistenProtokollModel::AKTION_ABGELEHNT,
             0,
             $grund,
         );
@@ -395,13 +395,13 @@ class Verteiler
     /**
      * Übersetzt die Einstellung der Liste in eine Nachbehandlung.
      *
-     * @param MailinglisteModel $liste Die Liste mit der Einstellung
+     * @param MailinglistenModel $liste Die Liste mit der Einstellung
      *
      * @return Nachbehandlung Der zugehörige Enum-Wert; bei einem unbekannten
      *                        Wert das ungefährlichste Verhalten, nämlich das
      *                        bloße Setzen des Lesezeichens
      */
-    private function nachbehandlungVon(MailinglisteModel $liste): Nachbehandlung
+    private function nachbehandlungVon(MailinglistenModel $liste): Nachbehandlung
     {
         return match ($liste->imapNachbehandlung) {
             'verschieben' => Nachbehandlung::Verschieben,
@@ -416,11 +416,11 @@ class Verteiler
      * Das Kennwort wird hier — und nur hier — entschlüsselt. Es lebt danach
      * ausschließlich im Wertobjekt und geht nicht durch weitere Schichten.
      *
-     * @param MailinglisteModel $liste Die Liste mit den IMAP-Angaben
+     * @param MailinglistenModel $liste Die Liste mit den IMAP-Angaben
      *
      * @return Postfachzugang Die Zugangsdaten für den Leser
      */
-    private function zugangVon(MailinglisteModel $liste): Postfachzugang
+    private function zugangVon(MailinglistenModel $liste): Postfachzugang
     {
         return new Postfachzugang(
             host: trim((string) $liste->imapHost),

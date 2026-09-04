@@ -25,7 +25,7 @@ use Schachbulle\ContaoMailinglistenBundle\Sicherheit\Geheimspeicher;
  * nicht von außen erzeugen. Als reiner Dienst mit Dependency Injection stellt
  * sich die Frage gar nicht erst.
  */
-class TlMailinglisteListener
+class TlMailinglistenListener
 {
     /**
      * Was im Kennwortfeld steht, solange ein Kennwort gespeichert ist.
@@ -60,16 +60,16 @@ class TlMailinglisteListener
      */
     public function pruefeVoraussetzungen(?DataContainer $dc = null): void
     {
-        System::loadLanguageFile('tl_mailingliste');
+        System::loadLanguageFile('tl_mailinglisten');
 
         if (!\extension_loaded('sodium')) {
-            Message::addError($GLOBALS['TL_LANG']['tl_mailingliste']['fehltSodium'] ?? 'Die PHP-Erweiterung "sodium" fehlt. Die Postfach-Kennwörter können nicht verschlüsselt werden.');
+            Message::addError($GLOBALS['TL_LANG']['tl_mailinglisten']['fehltSodium'] ?? 'Die PHP-Erweiterung "sodium" fehlt. Die Postfach-Kennwörter können nicht verschlüsselt werden.');
         }
 
         // Die Bibliothek für den IMAP-Zugriff wird über Composer geliefert.
         // Fehlt sie, wurde das Bundle von Hand ins vendor-Verzeichnis kopiert.
         if (!class_exists(\Webklex\PHPIMAP\ClientManager::class)) {
-            Message::addError($GLOBALS['TL_LANG']['tl_mailingliste']['fehltImap'] ?? 'Das Paket "webklex/php-imap" ist nicht installiert. Es werden keine Nachrichten abgeholt.');
+            Message::addError($GLOBALS['TL_LANG']['tl_mailinglisten']['fehltImap'] ?? 'Das Paket "webklex/php-imap" ist nicht installiert. Es werden keine Nachrichten abgeholt.');
         }
     }
 
@@ -92,13 +92,13 @@ class TlMailinglisteListener
         $db = Database::getInstance();
 
         $anzahl = (int) $db
-            ->prepare('SELECT COUNT(*) AS anzahl FROM tl_mailingliste_abonnent WHERE pid=? AND status=?')
+            ->prepare('SELECT COUNT(*) AS anzahl FROM tl_mailinglisten_abonnent WHERE pid=? AND status=?')
             ->execute($row['id'], 'aktiv')
             ->anzahl
         ;
 
         $offen = (int) $db
-            ->prepare('SELECT COUNT(*) AS anzahl FROM tl_mailingliste_abonnent WHERE pid=? AND status=?')
+            ->prepare('SELECT COUNT(*) AS anzahl FROM tl_mailinglisten_abonnent WHERE pid=? AND status=?')
             ->execute($row['id'], 'beantragt')
             ->anzahl
         ;
@@ -180,7 +180,7 @@ class TlMailinglisteListener
     {
         if (self::PLATZHALTER === $wert) {
             $alt = Database::getInstance()
-                ->prepare('SELECT '.$spalte.' AS wert FROM tl_mailingliste WHERE id=?')
+                ->prepare('SELECT '.$spalte.' AS wert FROM tl_mailinglisten WHERE id=?')
                 ->execute($dc->id)
             ;
 

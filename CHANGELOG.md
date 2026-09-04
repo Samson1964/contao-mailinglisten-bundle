@@ -6,12 +6,12 @@ Alle nennenswerten Änderungen an diesem Bundle.
 
 Erste Fassung.
 
-* Add: Beliebig viele Mailinglisten (`tl_mailingliste`), jede mit eigener
+* Add: Beliebig viele Mailinglisten (`tl_mailinglisten`), jede mit eigener
   Adresse, eigenem IMAP-Postfach und eigenem SMTP-Versandweg.
-* Add: Teilnehmerverwaltung (`tl_mailingliste_abonnent`) mit den Zuständen
+* Add: Teilnehmerverwaltung (`tl_mailinglisten_abonnent`) mit den Zuständen
   aktiv, beantragt und gesperrt sowie getrennten Rechten für Senden und
   Empfangen.
-* Add: Verlauf (`tl_mailingliste_protokoll`) über jede eingegangene Nachricht,
+* Add: Verlauf (`tl_mailinglisten_protokoll`) über jede eingegangene Nachricht,
   mit Begründung bei Ablehnungen und Fehlern.
 * Add: Cronjob im Minutentakt; das tatsächliche Prüfintervall steht je Liste in
   der Datenbank.

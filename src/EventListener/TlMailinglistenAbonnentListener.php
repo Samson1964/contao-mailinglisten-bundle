@@ -24,7 +24,7 @@ use Contao\System;
  * doppelt, und beim Aufnahmeantrag entstünde bei jedem Anlauf ein weiterer
  * Eintrag.
  */
-class TlMailinglisteAbonnentListener
+class TlMailinglistenAbonnentListener
 {
     /**
      * Normiert die E-Mail-Adresse und weist Dubletten ab.
@@ -55,15 +55,15 @@ class TlMailinglisteAbonnentListener
         $pid = (int) ($dc->activeRecord->pid ?? $dc->currentPid ?? 0);
 
         $treffer = Database::getInstance()
-            ->prepare('SELECT id FROM tl_mailingliste_abonnent WHERE pid=? AND email=? AND id!=?')
+            ->prepare('SELECT id FROM tl_mailinglisten_abonnent WHERE pid=? AND email=? AND id!=?')
             ->execute($pid, $email, (int) $dc->id)
         ;
 
         if ($treffer->numRows > 0) {
-            System::loadLanguageFile('tl_mailingliste_abonnent');
+            System::loadLanguageFile('tl_mailinglisten_abonnent');
 
             throw new \Exception(sprintf(
-                $GLOBALS['TL_LANG']['tl_mailingliste_abonnent']['dublette'] ?? 'Die Adresse "%s" ist in dieser Mailingliste bereits eingetragen.',
+                $GLOBALS['TL_LANG']['tl_mailinglisten_abonnent']['dublette'] ?? 'Die Adresse "%s" ist in dieser Mailingliste bereits eingetragen.',
                 $email,
             ));
         }
@@ -85,10 +85,10 @@ class TlMailinglisteAbonnentListener
      */
     public function kindDatensatz(array $row): string
     {
-        System::loadLanguageFile('tl_mailingliste_abonnent');
+        System::loadLanguageFile('tl_mailinglisten_abonnent');
 
         $status = (string) $row['status'];
-        $beschriftung = $GLOBALS['TL_LANG']['tl_mailingliste_abonnent']['statusWerte'][$status] ?? $status;
+        $beschriftung = $GLOBALS['TL_LANG']['tl_mailinglisten_abonnent']['statusWerte'][$status] ?? $status;
 
         $farbe = match ($status) {
             'beantragt' => '#b45f06',
