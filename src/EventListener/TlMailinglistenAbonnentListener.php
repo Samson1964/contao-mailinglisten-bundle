@@ -13,6 +13,10 @@ namespace Schachbulle\ContaoMailinglistenBundle\EventListener;
 use Contao\Database;
 use Contao\DataContainer;
 use Contao\System;
+use Schachbulle\ContaoMailinglistenBundle\Model\MailinglistenAbonnentModel;
+use Schachbulle\ContaoMailinglistenBundle\Model\MailinglistenModel;
+use Schachbulle\ContaoMailinglistenBundle\Versand\NachrichtenBauer;
+use Schachbulle\ContaoMailinglistenBundle\Versand\VersandDienst;
 
 /**
  * Rückrufe für den Data Container der Teilnehmer.
@@ -26,6 +30,100 @@ use Contao\System;
  */
 class TlMailinglistenAbonnentListener
 {
+    /**
+     * IDs der Einträge, die in diesem Aufruf freigegeben wurden.
+     *
+     * Der Statuswechsel wird im save_callback erkannt, die Nachricht aber erst
+     * im onsubmit_callback verschickt. Grund: Während des save_callback steht
+     * in der Datenbank noch der **alte** Wert — nur so lässt sich der Wechsel
+     * überhaupt feststellen —, gespeichert ist der neue aber noch nicht. Ginge
+     * die Nachricht schon dort hinaus und das Speichern scheiterte danach,
+     * hätte jemand eine Willkommensnachricht für eine Aufnahme bekommen, die
+     * nie stattfand.
+     *
+     * @var array<int, true>
+     */
+    private array $freigegeben = [];
+
+    /**
+     * @param NachrichtenBauer $bauer   Baut die Willkommensnachricht
+     * @param VersandDienst    $versand Verschickt sie über den Zugang der Liste
+     */
+    public function __construct(
+        private readonly NachrichtenBauer $bauer,
+        private readonly VersandDienst $versand,
+    ) {
+    }
+
+    /**
+     * Merkt sich, wenn ein Eintrag soeben freigegeben wurde.
+     *
+     * Gemeldet wird nur der Übergang **auf** „aktiv" von einem anderen Wert.
+     * Ein erneutes Speichern eines bereits aktiven Teilnehmers löst nichts
+     * aus, sonst bekäme er bei jeder Namenskorrektur eine Begrüßung.
+     *
+     * @param mixed         $wert Der neue Status aus dem Formular
+     * @param DataContainer $dc   Liefert die ID des Datensatzes
+     *
+     * @return mixed Der unveränderte Status
+     */
+    public function statusWechsel(mixed $wert, DataContainer $dc): mixed
+    {
+        $neu = (string) $wert;
+        $id = (int) $dc->id;
+
+        if (MailinglistenAbonnentModel::STATUS_AKTIV !== $neu || 0 === $id) {
+            return $wert;
+        }
+
+        $alt = Database::getInstance()
+            ->prepare('SELECT status FROM tl_mailinglisten_abonnent WHERE id=?')
+            ->execute($id)
+        ;
+
+        if ($alt->numRows > 0 && MailinglistenAbonnentModel::STATUS_AKTIV !== (string) $alt->status) {
+            $this->freigegeben[$id] = true;
+        }
+
+        return $wert;
+    }
+
+    /**
+     * Verschickt die Willkommensnachricht nach dem Speichern.
+     *
+     * Der Rückruf läuft in Contao 4.13 wie in 5.7 **nach** dem Schreiben in die
+     * Datenbank. Erst hier steht fest, dass die Freigabe wirklich Bestand hat.
+     *
+     * @param DataContainer $dc Liefert die ID des Datensatzes
+     *
+     * @return void
+     */
+    public function freigabeMelden(DataContainer $dc): void
+    {
+        $id = (int) $dc->id;
+
+        if (!isset($this->freigegeben[$id])) {
+            return;
+        }
+
+        unset($this->freigegeben[$id]);
+
+        $eintrag = MailinglistenAbonnentModel::findByPk($id);
+
+        if (null === $eintrag) {
+            return;
+        }
+
+        $liste = MailinglistenModel::findByPk((int) $eintrag->pid);
+
+        if (null === $liste) {
+            return;
+        }
+
+        $this->versand->versenden($liste, $this->bauer->aufnahmeBestaetigt($liste, $eintrag));
+        $this->versand->verbindungenSchliessen();
+    }
+
     /**
      * Normiert die E-Mail-Adresse und weist Dubletten ab.
      *

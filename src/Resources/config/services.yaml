@@ -114,6 +114,17 @@ services:
               table: tl_mailinglisten_abonnent
               target: list.sorting.child_record
               method: kindDatensatz
+            # Zweistufig: Der save_callback erkennt den Wechsel auf „aktiv“
+            # (dort steht in der Datenbank noch der alte Wert), der
+            # onsubmit_callback verschickt erst nach dem Speichern.
+            - name: contao.callback
+              table: tl_mailinglisten_abonnent
+              target: fields.status.save
+              method: statusWechsel
+            - name: contao.callback
+              table: tl_mailinglisten_abonnent
+              target: config.onsubmit
+              method: freigabeMelden
 
     Schachbulle\ContaoMailinglistenBundle\EventListener\TlMailinglistenProtokollListener:
         tags:

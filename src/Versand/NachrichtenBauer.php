@@ -56,11 +56,11 @@ class NachrichtenBauer
      *
      * @return Email Die versandfertige Nachricht
      */
-    public function verteilung(MailinglistenModel $liste, EingehendeNachricht $eingang, MailinglistenAbonnentModel $empfaenger): Email
+    public function verteilung(MailinglistenModel $liste, EingehendeNachricht $eingang, MailinglistenAbonnentModel $empfaenger, ?MailinglistenAbonnentModel $absender = null): Email
     {
         $mail = $this->grundgeruest($liste);
 
-        $anzeigename = '' !== $eingang->absenderName ? $eingang->absenderName : $eingang->absender;
+        $anzeigename = $this->anzeigename($eingang, $absender);
 
         $mail
             ->from(new Address((string) $liste->adresse, sprintf('%s via %s', $anzeigename, $liste->titel)))
@@ -77,11 +77,11 @@ class NachrichtenBauer
             $mail->replyTo(new Address((string) $liste->adresse, (string) $liste->titel));
         }
 
+        $fuss = $this->fusszeile($liste, $eingang);
         $text = $eingang->textOderAusHtml();
-        $fussnote = trim((string) $liste->fussnote);
 
-        if ('' !== $fussnote) {
-            $text = rtrim($text)."\n\n-- \n".$this->platzhalter($fussnote, $liste, $eingang);
+        if ('' !== $fuss) {
+            $text = rtrim($text)."\n\n-- \n".$fuss;
         }
 
         $mail->text($text);
@@ -89,9 +89,9 @@ class NachrichtenBauer
         if ('' !== trim($eingang->html)) {
             $html = $eingang->html;
 
-            if ('' !== $fussnote) {
+            if ('' !== $fuss) {
                 $html .= '<hr><p style="font-size:0.9em;color:#666">'
-                    .nl2br(htmlspecialchars($this->platzhalter($fussnote, $liste, $eingang), ENT_QUOTES, 'UTF-8'))
+                    .nl2br(htmlspecialchars($fuss, ENT_QUOTES, 'UTF-8'))
                     .'</p>';
             }
 
@@ -284,6 +284,57 @@ class NachrichtenBauer
         // Bewusst ohne die Listenkopfzeilen aus grundgeruest(): Diese Mail ist
         // keine Nachricht der Liste, und der Empfänger ist noch kein
         // Teilnehmer. Ein List-Unsubscribe wäre hier sogar irreführend.
+        $mail->getHeaders()->addTextHeader('Auto-Submitted', 'auto-generated');
+
+        return $mail;
+    }
+
+    /**
+     * Baut die Nachricht an einen soeben freigegebenen Teilnehmer.
+     *
+     * Ohne sie endet der Aufnahmeweg im Nichts: Der Antragsteller hat eine
+     * Eingangsbestätigung bekommen, dann wochenlang nichts gehört, und ob er
+     * nun dazugehört, erfährt er erst, wenn zufällig jemand an die Liste
+     * schreibt. Diese Nachricht schließt die Lücke und nennt zugleich, was er
+     * jetzt tun kann — schreiben und sich abmelden.
+     *
+     * @param MailinglistenModel         $liste   Die Liste
+     * @param MailinglistenAbonnentModel $eintrag Der freigegebene Teilnehmer
+     *
+     * @return Email Die versandfertige Nachricht
+     */
+    public function aufnahmeBestaetigt(MailinglistenModel $liste, MailinglistenAbonnentModel $eintrag): Email
+    {
+        $name = trim($eintrag->vorname.' '.$eintrag->nachname);
+
+        $text = sprintf(
+            "%sSie sind jetzt Teilnehmer der Mailingliste \"%s\".\n\n"
+            ."Ab sofort erhalten Sie die Nachrichten der Liste an diese Adresse.%s\n",
+            '' !== $name ? 'Guten Tag '.$name.",\n\n" : "Guten Tag,\n\n",
+            $liste->titel,
+            $eintrag->darfSenden
+                ? sprintf("\n\nSelbst schreiben können Sie an %s — Ihre Nachricht geht dann an alle Teilnehmer.", $liste->adresse)
+                : '',
+        );
+
+        $abmelden = trim((string) $liste->abmeldeKennung);
+
+        if ('' !== $abmelden) {
+            $text .= sprintf(
+                "\nWenn Sie die Liste wieder verlassen möchten, senden Sie eine E-Mail an %s mit dem Betreff \"%s\".\n",
+                $liste->adresse,
+                $abmelden,
+            );
+        }
+
+        $mail = new Email();
+        $mail
+            ->from(new Address((string) $liste->adresse, (string) $liste->titel))
+            ->to(new Address((string) $eintrag->email, '' !== $name ? $name : (string) $eintrag->email))
+            ->subject(sprintf('Willkommen bei %s', $liste->titel))
+            ->text($text)
+        ;
+
         $mail->getHeaders()->addTextHeader('Auto-Submitted', 'auto-generated');
 
         return $mail;
@@ -500,6 +551,85 @@ class NachrichtenBauer
         $mail->getHeaders()->addTextHeader('Auto-Submitted', 'auto-replied');
 
         return $mail;
+    }
+
+    /**
+     * Bestimmt, unter welchem Namen der Verfasser erscheint.
+     *
+     * Die Reihenfolge ist bewusst so gewählt: Der **Teilnehmerdatensatz** hat
+     * Vorrang, weil dort ein von der Betreuung gepflegter Vor- und Nachname
+     * steht. Was das Mailprogramm des Absenders in den From-Kopf schreibt, ist
+     * dagegen beliebig — oft steht dort gar nichts oder nur der Teil vor dem
+     * Klammeraffen, und dann stünde im Betreff so etwas wie
+     * „frank.binding via Vorstandsliste" statt „Frank Binding via …".
+     *
+     * @param EingehendeNachricht             $eingang  Die eingegangene Nachricht
+     * @param MailinglistenAbonnentModel|null $absender Der Teilnehmerdatensatz
+     *                                                  des Verfassers, sofern
+     *                                                  bekannt
+     *
+     * @return string Der anzuzeigende Name; notfalls die Adresse selbst
+     */
+    private function anzeigename(EingehendeNachricht $eingang, ?MailinglistenAbonnentModel $absender): string
+    {
+        if (null !== $absender) {
+            $name = trim($absender->vorname.' '.$absender->nachname);
+
+            if ('' !== $name) {
+                return $name;
+            }
+        }
+
+        if ('' !== trim($eingang->absenderName)) {
+            return trim($eingang->absenderName);
+        }
+
+        return $eingang->absender;
+    }
+
+    /**
+     * Baut die Fußzeile unter der verteilten Nachricht.
+     *
+     * Sie enthält immer einen **sichtbaren** Abmeldeweg. Der Kopf
+     * `List-Unsubscribe` allein genügt nicht: Thunderbird zeigt ihn nur unter
+     * bestimmten Bedingungen an, die Mailprogramme der Mobiltelefone meist gar
+     * nicht. Wer sich abmelden will, findet den Weg dann nirgends — und
+     * schreibt im Zweifel eine verärgerte Nachricht an die Liste oder drückt
+     * den Spam-Knopf, was der Zustellbarkeit weit mehr schadet als eine Zeile
+     * unter jeder Nachricht.
+     *
+     * Doppelt gesagt wird nichts: Erwähnt die eingestellte Fußzeile den
+     * Abmeldeweg bereits — erkennbar an einem der beiden Platzhalter —, bleibt
+     * es bei ihrem Wortlaut.
+     *
+     * @param MailinglistenModel  $liste   Liefert Fußzeile und Abmeldekennung
+     * @param EingehendeNachricht $eingang Für die Platzhalter der Fußzeile
+     *
+     * @return string Die fertige Fußzeile ohne führende Trennzeile, oder ''
+     *                wenn weder Fußzeile noch Abmeldekennung gesetzt sind
+     */
+    private function fusszeile(MailinglistenModel $liste, EingehendeNachricht $eingang): string
+    {
+        $eigene = trim((string) $liste->fussnote);
+        $abmelden = trim((string) $liste->abmeldeKennung);
+        $teile = [];
+
+        if ('' !== $eigene) {
+            $teile[] = $this->platzhalter($eigene, $liste, $eingang);
+        }
+
+        $selbstErklaert = '' !== $eigene
+            && (str_contains($eigene, '##abmeldekennung##') || str_contains($eigene, '##adresse##'));
+
+        if ('' !== $abmelden && !$selbstErklaert) {
+            $teile[] = sprintf(
+                'Abmelden: eine E-Mail an %s mit dem Betreff "%s".',
+                $liste->adresse,
+                $abmelden,
+            );
+        }
+
+        return implode("\n", $teile);
     }
 
     /**

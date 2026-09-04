@@ -73,7 +73,31 @@ abgewiesen.
 | **Betreffkennzeichen** | Wird jedem verteilten Betreff vorangestellt, etwa `[Vorstand]`. Ein bereits vorhandenes Kennzeichen wird **nicht** ein zweites Mal angehängt — sonst wüchse der Betreff mit jeder Antwort. |
 | **Antworten gehen an** | „an die Liste" macht aus dem Verteiler einen Gesprächskreis, „an den Absender" ein Rundschreiben mit privaten Rückfragen. |
 | **Anhänge weitergeben** | Ohne diese Einstellung wird nur der Text verteilt. |
-| **Fußzeile** | Wird unter jede verteilte Nachricht gesetzt, abgetrennt durch die übliche Signaturmarke. Gut geeignet für den Hinweis, wie man sich abmeldet. |
+| **Fußzeile** | Wird unter jede verteilte Nachricht gesetzt, abgetrennt durch die übliche Signaturmarke. |
+
+### Der Abmeldehinweis in der Fußzeile
+
+Unter jede verteilte Nachricht kommt **selbsttätig** eine Zeile, die den
+Abmeldeweg nennt:
+
+```
+Abmelden: eine E-Mail an vorstand@example.org mit dem Betreff "Abmeldung".
+```
+
+Das ist kein Zierrat. Die Kopfzeile `List-Unsubscribe`, die jede Nachricht
+ebenfalls trägt, zeigt Thunderbird nur unter bestimmten Bedingungen an und die
+Mailprogramme der Mobiltelefone meist überhaupt nicht. Wer sich abmelden will,
+fände den Weg sonst nirgends — und drückt im Zweifel den Spam-Knopf, was der
+Zustellbarkeit der ganzen Liste weit mehr schadet als eine Zeile unter jeder
+Nachricht.
+
+Doppelt gesagt wird nichts: Verwendet die eigene Fußzeile einen der
+Platzhalter `##abmeldekennung##` oder `##adresse##`, gilt sie als
+selbsterklärend und die Zeile entfällt. Wer den Wortlaut selbst bestimmen
+will, schreibt ihn also einfach in die Fußzeile.
+
+Ohne eingetragene Abmeldekennung entfällt der Hinweis ebenfalls — dann gibt es
+schließlich keinen Weg, den man nennen könnte.
 
 ### Platzhalter in den Texten
 
@@ -129,7 +153,7 @@ Nachrichten werden nach dem Wiedereinschalten der Reihe nach abgearbeitet.
 | Feld | Bedeutung |
 | --- | --- |
 | **E-Mail-Adresse** | Wird immer kleingeschrieben gespeichert und darf je Liste nur einmal vorkommen. |
-| **Vorname, Nachname** | Erscheinen im Empfängernamen der verteilten Nachrichten. |
+| **Vorname, Nachname** | Erscheinen im Empfängernamen der verteilten Nachrichten — und, wenn dieser Teilnehmer selbst an die Liste schreibt, als sein angezeigter Name („Max Mustermann via Vorstand"). Der Datensatz hat dabei Vorrang vor dem Namen aus seinem Mailprogramm, der oft fehlt oder nur die Adresse wiederholt. Es lohnt sich also, ihn zu pflegen. |
 | **Status** | `aktiv` nimmt am Verkehr teil. `beantragt` wartet auf Freigabe und bekommt nichts. `gesperrt` ist ausgeschlossen und bleibt es auch bei einem erneuten Antrag. |
 | **Darf an die Liste schreiben** | Ohne dieses Recht liest der Teilnehmer nur mit. |
 | **Erhält die Nachrichten der Liste** | Ohne dieses Recht darf er einreichen, bekommt aber nichts. |
@@ -197,3 +221,20 @@ Gegenseite den Grund erfährt. Zusätzlich prüft Contao das Anfrage-Merkmal
 Dafür gibt es kein Modul, und zwar mit Absicht: Es gibt bereits zwei Wege, die
 ohne weitere Pflege auskommen — das Kennwort im Betreff und die Kopfzeile
 `List-Unsubscribe`, die jedes gängige Mailprogramm als Abmeldeknopf anzeigt.
+
+## Was ein Teilnehmer zu sehen bekommt
+
+Der Aufnahmeweg meldet sich an jeder Stelle, damit niemand im Ungewissen
+bleibt:
+
+| Zeitpunkt | Nachricht an den Teilnehmer |
+| --- | --- |
+| Antrag per E-Mail eingegangen | Eingangsbestätigung („Ihr Antrag ist eingegangen") |
+| Antrag über die Webseite | Bestätigungslink, danach Eingangsbestätigung |
+| **Freigabe im Backend** | **Willkommensnachricht** — er ist jetzt Teilnehmer, mit Hinweis, wohin er schreiben kann und wie er sich abmeldet |
+| Abmeldung | Bestätigung der Abmeldung |
+
+Die Willkommensnachricht geht heraus, sobald der Status auf **aktiv**
+wechselt — gleich ob über die Einzelbearbeitung oder die Mehrfachbearbeitung.
+Ein erneutes Speichern eines bereits aktiven Teilnehmers löst nichts aus; eine
+Namenskorrektur führt also nicht zu einer zweiten Begrüßung.

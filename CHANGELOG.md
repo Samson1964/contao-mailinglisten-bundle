@@ -43,6 +43,18 @@ Erste Fassung.
   der Liste. Google und Yahoo verlangen den Kopf seit Februar 2024 von
   Massenversendern, Microsoft bewertet ihn ebenso; sein Fehlen gilt als
   Spam-Merkmal.
+* Add: Sichtbarer Abmeldehinweis in der Fußzeile jeder verteilten Nachricht.
+  `List-Unsubscribe` allein genügt nicht — Thunderbird zeigt den Kopf nur unter
+  bestimmten Bedingungen an, die Mailprogramme der Mobiltelefone meist gar
+  nicht. Erwähnt die eingestellte Fußzeile den Abmeldeweg bereits, bleibt es
+  bei ihrem Wortlaut.
+* Add: Willkommensnachricht an den Teilnehmer, sobald die Betreuung ihn im
+  Backend auf „aktiv“ setzt. Bis dahin endete der Aufnahmeweg im Nichts.
+* Change: Der angezeigte Name des Verfassers stammt jetzt aus dem
+  Teilnehmerdatensatz (Vor- und Nachname) statt aus dem `From`-Kopf der
+  eingegangenen Nachricht. Dort steht oft nichts oder nur der Teil vor dem
+  Klammeraffen, und im Betreff erschien dann „frank.binding via …“ statt
+  „Frank Binding via …“.
 * Add: Deutsche und englische Sprachdateien.
 * Add: Dokumentation unter `docs/` zu Einrichtung, Verteilungsregeln und
   Betrieb.

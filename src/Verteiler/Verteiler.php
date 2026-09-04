@@ -169,7 +169,7 @@ class Verteiler
 
             // 5. Der Regelfall: ein berechtigter Teilnehmer schreibt an die Liste.
             if (null !== $teilnehmer && $teilnehmer->darfEinreichen()) {
-                $this->verteilen($liste, $eingang);
+                $this->verteilen($liste, $eingang, $teilnehmer);
 
                 return [$this->nachbehandlungVon($liste), $gelesen->plus(new Verteilergebnis(verteilt: 1))];
             }
@@ -219,7 +219,7 @@ class Verteiler
      *
      * @return int Anzahl der erfolgreich versendeten Ausfertigungen
      */
-    private function verteilen(MailinglistenModel $liste, EingehendeNachricht $eingang): int
+    private function verteilen(MailinglistenModel $liste, EingehendeNachricht $eingang, ?MailinglistenAbonnentModel $absender = null): int
     {
         $empfaenger = MailinglistenAbonnentModel::findEmpfaenger((int) $liste->id);
         $anzahl = 0;
@@ -227,7 +227,7 @@ class Verteiler
 
         if (null !== $empfaenger) {
             foreach ($empfaenger as $einzelner) {
-                if ($this->versand->versenden($liste, $this->bauer->verteilung($liste, $eingang, $einzelner))) {
+                if ($this->versand->versenden($liste, $this->bauer->verteilung($liste, $eingang, $einzelner, $absender))) {
                     ++$anzahl;
                 } else {
                     ++$fehlgeschlagen;
