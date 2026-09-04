@@ -33,6 +33,10 @@ Erste Fassung.
 * Add: Listenkopfzeilen nach RFC 2919 und RFC 2369 (`List-Id`, `List-Post`,
   `Precedence`), Absender immer die Listenadresse — sonst reißt die SPF-Prüfung
   beim Empfänger.
+* Add: `List-Unsubscribe` an jeder verteilten Nachricht, mit der Abmeldekennung
+  der Liste. Google und Yahoo verlangen den Kopf seit Februar 2024 von
+  Massenversendern, Microsoft bewertet ihn ebenso; sein Fehlen gilt als
+  Spam-Merkmal.
 * Add: Deutsche und englische Sprachdateien.
 * Add: Dokumentation unter `docs/` zu Einrichtung, Verteilungsregeln und
   Betrieb.

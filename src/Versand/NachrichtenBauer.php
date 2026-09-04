@@ -104,6 +104,25 @@ class NachrichtenBauer
             }
         }
 
+        // Ein Abmeldeweg im Kopf ist heute Pflicht für jeden, der an viele
+        // verteilt: Google und Yahoo verlangen ihn seit Februar 2024
+        // ausdrücklich, Microsoft bewertet ihn ebenso. Sein Fehlen ist ein
+        // Spam-Merkmal — und zwar bei **jedem** Empfänger, während eine
+        // Zulassungsliste immer nur den einen Anbieter erreicht, bei dem sie
+        // eingetragen wurde.
+        //
+        // Der Verweis nutzt die Abmeldekennung, die die Liste ohnehin kennt;
+        // eine Ein-Klick-Abmeldung (List-Unsubscribe-Post) bliebe wirkungslos,
+        // weil sie einen HTTP-Endpunkt verlangt, den dieses Bundle nicht hat.
+        $abmelden = trim((string) $liste->abmeldeKennung);
+
+        if ('' !== $abmelden) {
+            $mail->getHeaders()->addTextHeader(
+                'List-Unsubscribe',
+                sprintf('<mailto:%s?subject=%s>', $liste->adresse, rawurlencode($abmelden)),
+            );
+        }
+
         return $mail;
     }
 
