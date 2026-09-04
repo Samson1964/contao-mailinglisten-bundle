@@ -10,3 +10,7 @@ declare(strict_types=1);
 
 // Back end module
 $GLOBALS['TL_LANG']['MOD']['mailingliste'] = array('Mailing lists', 'Manage any number of e-mail distributors that fetch their messages from a mailbox on their own and pass them on to the members.');
+
+// Front end module
+$GLOBALS['TL_LANG']['FMD']['mailinglisten'] = 'Mailing lists';
+$GLOBALS['TL_LANG']['FMD']['mailinglistenanmeldung'] = array('Mailing list subscription', 'A form visitors use to subscribe to a mailing list. The address is verified with a confirmation link; the maintainers then approve the request in the back end.');

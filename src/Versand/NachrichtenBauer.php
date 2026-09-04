@@ -237,6 +237,154 @@ class NachrichtenBauer
     }
 
     /**
+     * Baut die Mail mit dem Bestätigungslink zur Anmeldung über die Webseite.
+     *
+     * Diese Mail ist der einzige Beweis, dass der Eintragende auch Zugriff auf
+     * das angegebene Postfach hat — beim Formular auf der Webseite kann
+     * schließlich jeder eine fremde Adresse hineinschreiben. Erst der Klick
+     * macht aus dem Eintrag einen Antrag, über den die Betreuung entscheidet.
+     *
+     * Der Text sagt ausdrücklich, was zu tun ist, wenn man sich **nicht**
+     * angemeldet hat: nichts. Dann läuft der Link ab und der Eintrag ist
+     * gegenstandslos. Wer eine solche Mail unerwartet bekommt, soll nicht das
+     * Gefühl haben, aktiv werden zu müssen.
+     *
+     * @param MailinglistenModel $liste  Die beantragte Liste
+     * @param string             $an     Die einzutragende Adresse
+     * @param string             $name   Angezeigter Name, darf leer sein
+     * @param string             $link   Vollständige Adresse des Bestätigungslinks
+     *
+     * @return Email Die versandfertige Bestätigungsanfrage
+     */
+    public function anmeldeBestaetigung(MailinglistenModel $liste, string $an, string $name, string $link): Email
+    {
+        $text = sprintf(
+            "%sfür die Mailingliste \"%s\" wurde diese Adresse eingetragen.\n\n"
+            ."Bitte bestätigen Sie die Anmeldung über diesen Link:\n\n"
+            ."%s\n\n"
+            ."Danach entscheidet die Betreuung der Liste über die Aufnahme; Sie "
+            ."bekommen davon eine weitere Nachricht.\n\n"
+            ."Der Link gilt zwei Tage.\n\n"
+            ."Falls Sie sich nicht angemeldet haben, brauchen Sie nichts zu tun. "
+            ."Ohne Ihre Bestätigung geschieht nichts weiter, und der Eintrag "
+            ."verfällt von selbst.",
+            '' !== trim($name) ? 'Guten Tag '.trim($name).",\n\n" : "Guten Tag,\n\n",
+            $liste->titel,
+            $link,
+        );
+
+        $mail = new Email();
+        $mail
+            ->from(new Address((string) $liste->adresse, (string) $liste->titel))
+            ->to($an)
+            ->subject(sprintf('Bitte bestätigen: Anmeldung zu %s', $liste->titel))
+            ->text($text)
+        ;
+
+        // Bewusst ohne die Listenkopfzeilen aus grundgeruest(): Diese Mail ist
+        // keine Nachricht der Liste, und der Empfänger ist noch kein
+        // Teilnehmer. Ein List-Unsubscribe wäre hier sogar irreführend.
+        $mail->getHeaders()->addTextHeader('Auto-Submitted', 'auto-generated');
+
+        return $mail;
+    }
+
+    /**
+     * Baut die Auskunft an jemanden, der sich erneut anmelden wollte.
+     *
+     * Auf dem Bildschirm erfährt der Besucher nie, ob eine Adresse schon auf
+     * der Liste steht — sonst ließe sich über das Formular der Mitgliederkreis
+     * abfragen. Die Auskunft geht deshalb hierher: an das Postfach, dessen
+     * Inhaber ohnehin ein Recht darauf hat, seinen Stand zu erfahren.
+     *
+     * @param MailinglistenModel $liste Die betroffene Liste
+     * @param string             $an    Die angefragte Adresse
+     * @param string             $lage  'aktiv' für bereits eingetragen,
+     *                                  'beantragt' für einen laufenden Antrag
+     *
+     * @return Email Die versandfertige Auskunft
+     */
+    public function anmeldeHinweis(MailinglistenModel $liste, string $an, string $lage): Email
+    {
+        $text = match ($lage) {
+            'beantragt' => sprintf(
+                "Guten Tag,\n\n"
+                ."für die Mailingliste \"%s\" liegt für diese Adresse bereits ein Antrag vor.\n\n"
+                ."Er wartet auf die Freigabe durch die Betreuung der Liste. Sie brauchen "
+                ."nichts weiter zu tun; sobald entschieden ist, hören Sie von uns.",
+                $liste->titel,
+            ),
+            default => sprintf(
+                "Guten Tag,\n\n"
+                ."diese Adresse ist bereits Teilnehmer der Mailingliste \"%s\".\n\n"
+                ."Eine erneute Anmeldung ist nicht nötig. Wenn Sie keine Nachrichten der "
+                ."Liste mehr erhalten möchten, senden Sie eine E-Mail an %s mit dem "
+                ."Betreff \"%s\".",
+                $liste->titel,
+                $liste->adresse,
+                $liste->abmeldeKennung,
+            ),
+        };
+
+        $mail = new Email();
+        $mail
+            ->from(new Address((string) $liste->adresse, (string) $liste->titel))
+            ->to($an)
+            ->subject(sprintf('Ihre Anmeldung zu %s', $liste->titel))
+            ->text($text)
+        ;
+
+        $mail->getHeaders()->addTextHeader('Auto-Submitted', 'auto-generated');
+
+        return $mail;
+    }
+
+    /**
+     * Meldet der Betreuung einen über die Webseite bestätigten Antrag.
+     *
+     * Die Meldung geht erst nach dem Klick auf den Bestätigungslink hinaus.
+     * Vorher wäre sie eine Mitteilung über jemanden, der von seiner
+     * angeblichen Anmeldung womöglich gar nichts weiß — und bei mutwilligen
+     * Eintragungen eine bequeme Möglichkeit, die Betreuung zuzuschütten.
+     *
+     * @param MailinglistenModel         $liste   Die betroffene Liste
+     * @param MailinglistenAbonnentModel $eintrag Der bestätigte Eintrag
+     * @param string                     $an      Adresse der Betreuung
+     *
+     * @return Email Die versandfertige Meldung
+     */
+    public function antragUeberWebseite(MailinglistenModel $liste, MailinglistenAbonnentModel $eintrag, string $an): Email
+    {
+        $name = trim($eintrag->vorname.' '.$eintrag->nachname);
+
+        $text = sprintf(
+            "Für die Mailingliste \"%s\" liegt ein Aufnahmeantrag über die Webseite vor.\n\n"
+            ."Adresse: %s\n"
+            ."Name:    %s\n\n"
+            ."Die Adresse wurde per Bestätigungslink überprüft; der Antragsteller hat "
+            ."also Zugriff auf dieses Postfach.\n\n"
+            ."Der Eintrag steht im Backend unter Mailinglisten auf \"Aufnahme beantragt\". "
+            ."Zum Aufnehmen den Status auf \"aktiv\" setzen, zum Ablehnen den Eintrag löschen.",
+            $liste->titel,
+            $eintrag->email,
+            '' !== $name ? $name : '(nicht angegeben)',
+        );
+
+        $mail = new Email();
+        $mail
+            ->from(new Address((string) $liste->adresse, (string) $liste->titel))
+            ->to($an)
+            ->subject(sprintf('[%s] Aufnahmeantrag von %s', $liste->titel, $eintrag->email))
+            ->text($text)
+            ->replyTo(new Address((string) $eintrag->email, '' !== $name ? $name : (string) $eintrag->email))
+        ;
+
+        $mail->getHeaders()->addTextHeader('Auto-Submitted', 'auto-generated');
+
+        return $mail;
+    }
+
+    /**
      * Baut die Mitteilung an die Betreuung über eine abgewiesene Nachricht.
      *
      * Ohne diese Mitteilung bleibt eine Ablehnung unbemerkt, bis jemand von

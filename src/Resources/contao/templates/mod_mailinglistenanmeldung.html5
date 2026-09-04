@@ -1,0 +1,92 @@
+<?php // Bewusst nicht durchsuchbar: Ein Formular hat keinen Inhalt für den
+      // Suchindex, und die Seite mit dem Bestätigungsmerkmal in der Adresse
+      // hat dort erst recht nichts verloren.
+      $this->extend('block_unsearchable'); ?>
+
+<?php $this->block('content'); ?>
+
+<?php if (!$this->verfuegbar): ?>
+
+  <p class="empty"><?= $GLOBALS['TL_LANG']['MSC']['mlKeineListe'] ?? 'Für dieses Modul ist keine aktive Mailingliste hinterlegt.' ?></p>
+
+<?php else: ?>
+
+  <?php if ($this->listenbeschreibung): ?>
+    <div class="mailingliste-beschreibung">
+      <?= nl2br(htmlspecialchars($this->listenbeschreibung, ENT_QUOTES, 'UTF-8')) ?>
+    </div>
+  <?php endif; ?>
+
+  <?php if ($this->fehler): ?>
+    <div class="mailingliste-fehler" role="alert">
+      <ul>
+        <?php foreach ($this->fehler as $fehler): ?>
+          <li><?= htmlspecialchars($fehler, ENT_QUOTES, 'UTF-8') ?></li>
+        <?php endforeach; ?>
+      </ul>
+    </div>
+  <?php endif; ?>
+
+  <?php if ($this->meldung): ?>
+    <div class="mailingliste-meldung" role="status">
+      <p><?= $this->meldung ?></p>
+    </div>
+  <?php endif; ?>
+
+  <?php if ($this->formularZeigen): ?>
+
+    <form method="post" class="mailingliste-anmeldung">
+      <div class="formbody">
+
+        <input type="hidden" name="FORM_SUBMIT" value="<?= $this->formSubmit ?>">
+        <input type="hidden" name="REQUEST_TOKEN" value="<?= $this->requestToken ?>">
+
+        <?php // Falle für Formularroboter. Für Menschen unsichtbar, deshalb
+              // auch aus dem Vorlesefluss genommen (aria-hidden, tabindex). ?>
+        <div style="position:absolute;left:-9999px" aria-hidden="true">
+          <label for="<?= $this->honigtopf ?>"><?= $GLOBALS['TL_LANG']['MSC']['mlHonigtopf'] ?? 'Dieses Feld bitte leer lassen' ?></label>
+          <input type="text" id="<?= $this->honigtopf ?>" name="<?= $this->honigtopf ?>" value="" tabindex="-1" autocomplete="off">
+        </div>
+
+        <div class="widget widget-text mandatory">
+          <label for="ml_email" class="mandatory">
+            <span class="invisible"><?= $GLOBALS['TL_LANG']['MSC']['mandatory'] ?? 'Pflichtfeld' ?> </span><?= $GLOBALS['TL_LANG']['MSC']['mlFeldEmail'] ?? 'E-Mail-Adresse' ?><span class="mandatory">*</span>
+          </label>
+          <input type="email" name="email" id="ml_email" class="text mandatory" value="<?= htmlspecialchars($this->werte['email'], ENT_QUOTES, 'UTF-8') ?>" required autocomplete="email">
+        </div>
+
+        <div class="widget widget-text">
+          <label for="ml_vorname"><?= $GLOBALS['TL_LANG']['MSC']['mlFeldVorname'] ?? 'Vorname' ?></label>
+          <input type="text" name="vorname" id="ml_vorname" class="text" value="<?= htmlspecialchars($this->werte['vorname'], ENT_QUOTES, 'UTF-8') ?>" maxlength="128" autocomplete="given-name">
+        </div>
+
+        <div class="widget widget-text">
+          <label for="ml_nachname"><?= $GLOBALS['TL_LANG']['MSC']['mlFeldNachname'] ?? 'Nachname' ?></label>
+          <input type="text" name="nachname" id="ml_nachname" class="text" value="<?= htmlspecialchars($this->werte['nachname'], ENT_QUOTES, 'UTF-8') ?>" maxlength="128" autocomplete="family-name">
+        </div>
+
+        <?php if ($this->einwilligungstext): ?>
+          <div class="widget widget-checkbox mandatory">
+            <fieldset class="checkbox_container mandatory">
+              <span class="checkbox">
+                <input type="checkbox" name="einwilligung" id="ml_einwilligung" class="checkbox mandatory" value="1" required>
+                <label for="ml_einwilligung"><?= $this->einwilligungstext ?></label>
+              </span>
+            </fieldset>
+          </div>
+        <?php endif; ?>
+
+        <div class="widget widget-submit">
+          <button type="submit" class="submit">
+            <?= $GLOBALS['TL_LANG']['MSC']['mlAbsenden'] ?? 'Anmelden' ?>
+          </button>
+        </div>
+
+      </div>
+    </form>
+
+  <?php endif; ?>
+
+<?php endif; ?>
+
+<?php $this->endblock(); ?>

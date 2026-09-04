@@ -284,7 +284,13 @@ class Verteiler
     {
         $meldung = 'Antrag vorgemerkt.';
 
+        // Sagt, ob durch diese Nachricht ein Antrag entstanden ist, über den
+        // die Betreuung entscheiden muss. Nur dann geht eine Meldung hinaus —
+        // eine Nachricht über einen längst bekannten Eintrag wäre Rauschen.
+        $neuerAntrag = false;
+
         if (null === $vorhanden) {
+            $neuerAntrag = true;
             $teilnehmer = new MailinglistenAbonnentModel();
             $teilnehmer->pid = (int) $liste->id;
             $teilnehmer->tstamp = time();
@@ -299,13 +305,26 @@ class Verteiler
             $teilnehmer->save();
         } elseif (MailinglistenAbonnentModel::STATUS_GESPERRT === $vorhanden->status) {
             $meldung = 'Antrag einer gesperrten Adresse, Eintrag unverändert gelassen.';
+        } elseif (MailinglistenAbonnentModel::STATUS_UNBESTAETIGT === $vorhanden->status) {
+            // Über die Webseite eingetragen, aber nie bestätigt — und nun
+            // schreibt dieselbe Adresse selbst an die Liste. Damit ist der
+            // Zugriff auf das Postfach belegt, der Bestätigungslink also
+            // gegenstandslos. Der Eintrag rückt zum Antrag auf.
+            $vorhanden->status = MailinglistenAbonnentModel::STATUS_BEANTRAGT;
+            $vorhanden->token = '';
+            $vorhanden->tokenErzeugt = 0;
+            $vorhanden->tstamp = time();
+            $vorhanden->save();
+
+            $neuerAntrag = true;
+            $meldung = 'Offene Anmeldung über die Webseite durch diese E-Mail bestätigt.';
         } else {
             $meldung = 'Antrag einer bereits eingetragenen Adresse, Eintrag unverändert gelassen.';
         }
 
         $this->versand->versenden($liste, $this->bauer->antragsBestaetigung($liste, $eingang));
 
-        if (null === $vorhanden) {
+        if ($neuerAntrag) {
             foreach ($this->betreuungsAdressen($liste) as $adresse) {
                 $this->versand->versenden($liste, $this->bauer->betreuerBenachrichtigung($liste, $eingang, $adresse));
             }
@@ -385,6 +404,7 @@ class Verteiler
         $grund = match (true) {
             null === $teilnehmer => 'Absender gehört nicht zur Liste.',
             MailinglistenAbonnentModel::STATUS_BEANTRAGT === $teilnehmer->status => 'Aufnahmeantrag ist noch nicht freigegeben.',
+            MailinglistenAbonnentModel::STATUS_UNBESTAETIGT === $teilnehmer->status => 'Anmeldung über die Webseite ist noch nicht bestätigt.',
             MailinglistenAbonnentModel::STATUS_GESPERRT === $teilnehmer->status => 'Absender ist gesperrt.',
             default => 'Absender hat kein Senderecht.',
         };

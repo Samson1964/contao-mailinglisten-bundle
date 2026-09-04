@@ -25,6 +25,7 @@ $GLOBALS['TL_LANG']['tl_mailinglisten_abonnent']['notiz_legend'] = 'Notiz';
 // Auswahlwerte
 $GLOBALS['TL_LANG']['tl_mailinglisten_abonnent']['statusWerte']['aktiv'] = 'aktiv';
 $GLOBALS['TL_LANG']['tl_mailinglisten_abonnent']['statusWerte']['beantragt'] = 'Aufnahme beantragt';
+$GLOBALS['TL_LANG']['tl_mailinglisten_abonnent']['statusWerte']['unbestaetigt'] = 'Bestätigung ausstehend';
 $GLOBALS['TL_LANG']['tl_mailinglisten_abonnent']['statusWerte']['gesperrt'] = 'gesperrt';
 
 // Operationen

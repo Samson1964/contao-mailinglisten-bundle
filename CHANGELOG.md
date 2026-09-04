@@ -18,6 +18,12 @@ Erste Fassung.
 * Add: Aufnahmeantrag per Kennwort am Betreffanfang, mit Bestätigung an den
   Antragsteller, Mitteilung an die Betreuung und Freigabe im Backend.
 * Add: Abmeldung per Kennwort am Betreffanfang.
+* Add: Frontend-Modul „Anmeldung zur Mailingliste“. Die eingetragene Adresse
+  wird per Bestätigungslink geprüft (Status „Bestätigung ausstehend“), erst
+  danach entsteht ein Antrag und die Betreuung wird benachrichtigt. Die Meldung
+  auf dem Bildschirm ist in jedem Fall dieselbe, damit sich über das Formular
+  nicht abfragen lässt, wer Teilnehmer der Liste ist. Mit unsichtbarem
+  Fangfeld gegen Formularroboter und einstellbarem Datenschutzhinweis.
 * Add: Schleifenschutz — eigene Nachrichten (Kopfzeile
   `X-Contao-Mailingliste`), maschinelle Antworten (`Auto-Submitted`,
   `Precedence`, `X-Autoreply`) und bereits verarbeitete Message-IDs werden

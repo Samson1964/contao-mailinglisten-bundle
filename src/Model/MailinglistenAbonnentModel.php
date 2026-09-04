@@ -32,6 +32,8 @@ use Contao\Model\Collection;
  * @property string $darfEmpfangen
  * @property int    $beigetreten
  * @property string $notiz
+ * @property string $token
+ * @property int    $tokenErzeugt
  *
  * @method static MailinglistenAbonnentModel|null findByPk($id, array $opt = array())
  * @method static MailinglistenAbonnentModel|null findOneBy($col, $val, array $opt = array())
@@ -52,6 +54,21 @@ class MailinglistenAbonnentModel extends Model
      * die Liste schicken.
      */
     public const STATUS_BEANTRAGT = 'beantragt';
+
+    /**
+     * Über das Frontend-Formular eingetragen, aber noch nicht bestätigt.
+     *
+     * Dieser Zustand steht **vor** `beantragt` und gibt es nur beim Weg über
+     * die Webseite: Dort kann jeder eine fremde Adresse eintragen, die
+     * Adresse ist also durch nichts belegt. Erst der Klick auf den
+     * Bestätigungslink beweist, dass der Eintragende auch Zugriff auf das
+     * Postfach hat — dann wird daraus ein `beantragt`, über das die Betreuung
+     * entscheidet.
+     *
+     * Ein Eintrag in diesem Zustand taucht in keiner Verteilung auf und
+     * erzeugt auch keine Meldung an die Betreuung.
+     */
+    public const STATUS_UNBESTAETIGT = 'unbestaetigt';
 
     /**
      * Der Teilnehmer ist gesperrt.
@@ -113,6 +130,36 @@ class MailinglistenAbonnentModel extends Model
             ['pid=?', 'status=?', 'darfEmpfangen=?'],
             [$pid, self::STATUS_AKTIV, '1'],
             ['order' => 'email'],
+        );
+    }
+
+    /**
+     * Sucht einen Eintrag anhand seines Bestätigungsmerkmals.
+     *
+     * Das Merkmal ist über alle Listen hinweg eindeutig, weil es aus dem
+     * Zufallsgenerator stammt; die Liste muss deshalb nicht mitgegeben werden.
+     * Ein abgelaufenes oder leeres Merkmal findet nichts — ein Link, der
+     * wochenlang in einem Postfach liegt, soll nicht mehr wirken.
+     *
+     * @param string $merkmal Der Wert aus dem Bestätigungslink
+     * @param int    $gueltig Wie lange ein Merkmal gilt, in Sekunden
+     *
+     * @return self|null Der wartende Eintrag, oder null wenn das Merkmal
+     *                   unbekannt, abgelaufen oder bereits eingelöst ist
+     */
+    public static function findByMerkmal(string $merkmal, int $gueltig = 172800): ?self
+    {
+        $merkmal = trim($merkmal);
+
+        // Ein zu kurzer Wert kann nicht aus dem Zufallsgenerator stammen; die
+        // Prüfung hält Rateversuche von der Datenbank fern.
+        if (32 > \strlen($merkmal)) {
+            return null;
+        }
+
+        return static::findOneBy(
+            ['token=?', 'status=?', 'tokenErzeugt>?'],
+            [$merkmal, self::STATUS_UNBESTAETIGT, time() - $gueltig],
         );
     }
 

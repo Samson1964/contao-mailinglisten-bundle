@@ -40,6 +40,7 @@ $GLOBALS['TL_DCA']['tl_mailinglisten_abonnent'] = array
 				'pid'         => 'index',
 				'pid,email'   => 'index',
 				'pid,status'  => 'index',
+				'token'       => 'index',
 			),
 		),
 	),
@@ -150,7 +151,11 @@ $GLOBALS['TL_DCA']['tl_mailinglisten_abonnent'] = array
 			'filter'                  => true,
 			'inputType'               => 'select',
 			'default'                 => 'aktiv',
-			'options'                 => array('aktiv', 'beantragt', 'gesperrt'),
+			// „unbestaetigt" entsteht nur über das Frontend-Formular und
+			// verschwindet mit dem Klick auf den Bestätigungslink. Es steht
+			// trotzdem zur Auswahl, damit ein Eintrag im Backend
+			// nachvollziehbar bleibt und sich notfalls von Hand setzen lässt.
+			'options'                 => array('aktiv', 'beantragt', 'unbestaetigt', 'gesperrt'),
 			'reference'               => &$GLOBALS['TL_LANG']['tl_mailinglisten_abonnent']['statusWerte'],
 			'eval'                    => array('tl_class'=>'w50'),
 			'sql'                     => "varchar(16) NOT NULL default 'aktiv'",
@@ -174,6 +179,17 @@ $GLOBALS['TL_DCA']['tl_mailinglisten_abonnent'] = array
 			'sql'                     => "char(1) NOT NULL default '1'",
 		),
 		'beigetreten' => array
+		(
+			'sql'                     => "int(10) unsigned NOT NULL default 0",
+		),
+		// Bestätigungsmerkmal für die Anmeldung über das Frontend-Formular.
+		// Steht in keiner Palette: Es wird ausschließlich vom Modul gesetzt
+		// und beim Einlösen wieder geleert.
+		'token' => array
+		(
+			'sql'                     => "varchar(64) NOT NULL default ''",
+		),
+		'tokenErzeugt' => array
 		(
 			'sql'                     => "int(10) unsigned NOT NULL default 0",
 		),

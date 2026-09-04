@@ -138,3 +138,62 @@ Ein Aufnahmeantrag wird freigegeben, indem der Status von `beantragt` auf
 `aktiv` gesetzt wird. Wer den Antrag ablehnen will, löscht den Eintrag — oder
 setzt ihn auf `gesperrt`, wenn derselbe Absender es sonst gleich wieder
 versucht.
+
+## Anmeldung über die Webseite
+
+Neben dem Weg über den Betreff gibt es ein Frontend-Modul. Es wird im Backend
+unter **Layout → Module** angelegt, Typ **Anmeldung zur Mailingliste**.
+
+| Feld | Bedeutung |
+| --- | --- |
+| **Mailingliste** | Die Liste, für die das Formular gilt. Für mehrere Listen legt man mehrere Module an. Abgeschaltete Listen lassen sich auswählen; das Formular erscheint dann erst nach ihrer Veröffentlichung. |
+| **Hinweis zum Datenschutz** | Erscheint als Ankreuzfeld unter dem Formular und muss dann bestätigt werden. HTML ist erlaubt, etwa für einen Verweis auf die Datenschutzerklärung. Bleibt das Feld leer, entfällt das Ankreuzfeld. |
+
+### Der Ablauf
+
+```
+Formular ausgefüllt   →  Status „Bestätigung ausstehend“
+Bestätigungslink      →  Status „Aufnahme beantragt“   + Meldung an die Betreuung
+Freigabe im Backend   →  Status „aktiv“
+```
+
+Der Bestätigungslink ist **kein Formalismus**. In ein Formular auf einer
+öffentlichen Seite kann jeder eine fremde Adresse eintragen; erst der Klick
+beweist, dass der Eintragende Zugriff auf das Postfach hat. Bis dahin erfährt
+die Betreuung nichts von dem Eintrag — sonst ließe sich ihr Postfach mit
+erfundenen Anmeldungen zuschütten. Der Link gilt zwei Tage; danach verfällt
+der Eintrag.
+
+Schreibt jemand mit einem offenen, unbestätigten Eintrag später selbst an die
+Listenadresse, gilt die Adresse damit als belegt: Der Eintrag rückt ohne
+weiteres Zutun zum Antrag auf.
+
+### Was der Besucher zu sehen bekommt
+
+Die Meldung nach dem Absenden ist **immer dieselbe** — gleich ob die Adresse
+neu ist, schon auf der Liste steht oder gesperrt wurde. Andernfalls ließe sich
+über das Formular abfragen, wer Teilnehmer der Liste ist; bei einem Verteiler
+zu einem Thema wie Gesundheit oder Inklusion wäre das eine Auskunft, die
+niemanden etwas angeht.
+
+Was wirklich der Fall ist, erfährt allein der Inhaber des Postfachs:
+
+| Lage der Adresse | Was per Mail geschieht |
+| --- | --- |
+| neu oder unbestätigt | Bestätigungslink |
+| bereits aktiv | Hinweis, dass sie schon Teilnehmer ist, samt Abmeldeweg |
+| Antrag läuft | Hinweis, dass der Antrag auf Freigabe wartet |
+| gesperrt | nichts |
+
+### Spam-Schutz
+
+Das Formular enthält ein für Menschen unsichtbares Feld. Wird es ausgefüllt,
+war ein Formularroboter am Werk; die Eingabe wird verworfen, ohne dass die
+Gegenseite den Grund erfährt. Zusätzlich prüft Contao das Anfrage-Merkmal
+(`REQUEST_TOKEN`) jeder Formularsendung.
+
+### Abmeldung
+
+Dafür gibt es kein Modul, und zwar mit Absicht: Es gibt bereits zwei Wege, die
+ohne weitere Pflege auskommen — das Kennwort im Betreff und die Kopfzeile
+`List-Unsubscribe`, die jedes gängige Mailprogramm als Abmeldeknopf anzeigt.

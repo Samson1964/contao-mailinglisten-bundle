@@ -50,6 +50,21 @@ services:
             - name: contao.cronjob
               interval: minutely
 
+    # --- Frontend ----------------------------------------------------------
+
+    # Das Anmeldeformular. Der Template-Name trägt keinen Schrägstrich und gilt
+    # damit auch unter Contao 5 als Legacy-Template — eine einzige .html5-Datei
+    # bedient beide Fassungen.
+    Schachbulle\ContaoMailinglistenBundle\Controller\FrontendModule\AnmeldungController:
+        arguments:
+            $tokenManager: '@contao.csrf.token_manager'
+            $logger: '@monolog.logger.contao.error'
+        tags:
+            - name: contao.frontend_module
+              category: mailinglisten
+              type: mailinglistenanmeldung
+              template: mod_mailinglistenanmeldung
+
     # --- Konsolenbefehl ----------------------------------------------------
 
     Schachbulle\ContaoMailinglistenBundle\Command\PostfachAbrufenCommand: ~
@@ -106,3 +121,13 @@ services:
               table: tl_mailinglisten_protokoll
               target: list.sorting.child_record
               method: kindDatensatz
+
+    # Die Auswahl der Liste im Anmeldemodul. Ein options_callback ist hier
+    # Pflicht: `foreignKey` füllt eine Auswahlliste nicht, und eine zur Ladezeit
+    # aufgebaute Liste überstünde den DCA-Zwischenspeicher von Contao 5 nicht.
+    Schachbulle\ContaoMailinglistenBundle\EventListener\TlModuleListener:
+        tags:
+            - name: contao.callback
+              table: tl_module
+              target: fields.mlListe.options
+              method: listenOptionen

@@ -93,6 +93,10 @@ class TlMailinglistenAbonnentListener
         $farbe = match ($status) {
             'beantragt' => '#b45f06',
             'gesperrt' => '#a61c00',
+            // Ein unbestätigter Eintrag ist noch kein Vorgang, um den sich
+            // jemand kümmern müsste — er verfällt von selbst. Deshalb grau
+            // und nicht in der Warnfarbe der offenen Anträge.
+            'unbestaetigt' => '#999999',
             default => '#4a8f2a',
         };
 
