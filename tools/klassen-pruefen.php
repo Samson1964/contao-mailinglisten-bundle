@@ -5,15 +5,15 @@ declare(strict_types=1);
 /*
  * Sucht Klassenverweise, die ins Leere zeigen.
  *
- * `php -l` prueft nur die Syntax und meldet einen falsch geschriebenen
- * Klassennamen nicht — der faellt erst zur Laufzeit auf, und zwar genau dann,
+ * `php -l` prüft nur die Syntax und meldet einen falsch geschriebenen
+ * Klassennamen nicht — der fällt erst zur Laufzeit auf, und zwar genau dann,
  * wenn die betroffene Methode zum ersten Mal aufgerufen wird. Beim
  * Mailinglisten-Bundle ist das am 2026-09-04 passiert: Nach der Umbenennung
  * von MailinglisteModel auf MailinglistenModel blieben drei Signaturen stehen,
- * die PHP gegen den eigenen Namensraum aufgeloest hat.
+ * die PHP gegen den eigenen Namensraum aufgelöst hat.
  *
  * Das Skript tokenisiert jede Datei (dadurch bleiben Kommentare und
- * Zeichenketten aussen vor), sammelt die use-Importe und meldet jeden
+ * Zeichenketten außen vor), sammelt die use-Importe und meldet jeden
  * unqualifizierten Klassennamen, der weder importiert ist noch als Datei im
  * selben Namensraum liegt.
  */
@@ -21,7 +21,7 @@ declare(strict_types=1);
 $wurzel = $argv[1] ?? dirname(__DIR__);
 
 /**
- * Klassen, die PHP selbst mitbringt und die ohne Import benutzt werden duerfen.
+ * Klassen, die PHP selbst mitbringt und die ohne Import benutzt werden dürfen.
  */
 $eingebaut = [
     'Throwable', 'Exception', 'Error', 'TypeError', 'RuntimeException',
@@ -93,7 +93,7 @@ function zerlegen(string $datei): array
             continue;
         }
 
-        // Benutzte Klassennamen: unqualifizierte Bezeichner mit grossem
+        // Benutzte Klassennamen: unqualifizierte Bezeichner mit großem
         // Anfangsbuchstaben, die nicht Methodenname, Eigenschaft oder
         // Funktionsdeklaration sind.
         if (T_STRING === $t[0] && preg_match('/^[A-Z]/', $t[1])) {
@@ -107,18 +107,18 @@ function zerlegen(string $datei): array
             }
 
             // Nach -> ?-> :: function const case steht kein Klassenname.
-            // T_CASE deckt die Faelle einer Aufzaehlung ab (enum Nachbehandlung).
+            // T_CASE deckt die Fälle einer Aufzählung ab (enum Nachbehandlung).
             if (is_array($vorher) && in_array($vorher[0], [T_OBJECT_OPERATOR, T_NULLSAFE_OBJECT_OPERATOR, T_FUNCTION, T_CONST, T_DOUBLE_COLON, T_CASE], true)) {
                 continue;
             }
 
-            // Durchgehende Grossschreibung ist eine Konstante, keine Klasse
+            // Durchgehende Großschreibung ist eine Konstante, keine Klasse
             // (SODIUM_CRYPTO_SECRETBOX_NONCEBYTES, ENT_QUOTES, PHP_EOL).
             if (preg_match('/^[A-Z][A-Z0-9_]*$/', $t[1])) {
                 continue;
             }
 
-            // Ein voll qualifizierter Name beginnt mit \ und ist immer gueltig.
+            // Ein voll qualifizierter Name beginnt mit \ und ist immer gültig.
             if (is_array($vorher) && T_NS_SEPARATOR === $vorher[0]) {
                 continue;
             }
@@ -181,7 +181,7 @@ foreach ($dateien as $d) {
 
         ++$probleme;
         printf(
-            "UNAUFGELOEST  %s:%d  %s\n              -> weder importiert noch als %s\\%s vorhanden\n",
+            "UNAUFGELÖST  %s:%d  %s\n              -> weder importiert noch als %s\\%s vorhanden\n",
             $kurz,
             $zeile,
             $name,
@@ -191,6 +191,6 @@ foreach ($dateien as $d) {
     }
 }
 
-printf("\n%d Dateien, %d Klassenverweise geprueft, %d unaufgeloest\n", count($dateien), $geprueft, $probleme);
+printf("\n%d Dateien, %d Klassenverweise geprüft, %d unaufgelöst\n", count($dateien), $geprueft, $probleme);
 
 exit($probleme > 0 ? 1 : 0);

@@ -103,7 +103,7 @@ class GeheimspeicherTest extends TestCase
     {
         $speicher = new Geheimspeicher('geheimnis');
 
-        $this->assertSame('', $speicher->entschluesseln('sodium:v1:kein-gueltiges-base64!!!'));
+        $this->assertSame('', $speicher->entschluesseln('sodium:v1:kein-gültiges-base64!!!'));
         $this->assertSame('', $speicher->entschluesseln('sodium:v1:'.base64_encode('zu kurz')));
     }
 }

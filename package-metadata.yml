@@ -1,5 +1,5 @@
-# Quelle fuer die Metadaten im Contao Manager (contao/package-metadata).
-# Aenderungen hier werden in den Fork uebertragen.
+# Quelle für die Metadaten im Contao Manager (contao/package-metadata).
+# Änderungen hier werden in den Fork übertragen.
 
 de:
     title: Mailinglisten
@@ -7,9 +7,9 @@ de:
         Betreibt beliebig viele E-Mail-Verteiler. Jede Liste bekommt ein
         eigenes Postfach; ein Cronjob holt neue Nachrichten per IMAP ab und
         gibt sie an die Teilnehmer weiter. Nachrichten fremder Absender werden
-        abgewiesen, die Aufnahme laesst sich per Kennwort im Betreff
+        abgewiesen, die Aufnahme lässt sich per Kennwort im Betreff
         beantragen und wird im Backend freigegeben. Abmeldung, Ablehnungstext,
-        Fusszeile und Betreffkennzeichen sind je Liste einstellbar. Laeuft
+        Fußzeile und Betreffkennzeichen sind je Liste einstellbar. Läuft
         unter Contao 4.13 und Contao 5.
     keywords:
         - Mailingliste
