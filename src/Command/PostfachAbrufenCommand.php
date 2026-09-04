@@ -13,6 +13,7 @@ namespace Schachbulle\ContaoMailinglistenBundle\Command;
 use Contao\CoreBundle\Framework\ContaoFramework;
 use Schachbulle\ContaoMailinglistenBundle\Model\MailinglistenAbonnentModel;
 use Schachbulle\ContaoMailinglistenBundle\Model\MailinglistenModel;
+use Schachbulle\ContaoMailinglistenBundle\Model\MailinglistenProtokollModel;
 use Schachbulle\ContaoMailinglistenBundle\Postfach\Nachbehandlung;
 use Schachbulle\ContaoMailinglistenBundle\Postfach\PostfachFehler;
 use Schachbulle\ContaoMailinglistenBundle\Postfach\PostfachLeserInterface;
@@ -82,6 +83,7 @@ class PostfachAbrufenCommand extends Command
             ->setDescription('Ruft die Postfächer der Mailinglisten ab und verteilt die Nachrichten.')
             ->addArgument('liste', InputArgument::OPTIONAL, 'ID einer einzelnen Mailingliste; ohne Angabe werden alle veröffentlichten bearbeitet')
             ->addOption('pruefen', null, InputOption::VALUE_NONE, 'Nur die Verbindung prüfen und die ungelesenen Nachrichten zählen, nichts verteilen und nichts verändern')
+            ->addOption('verlauf', null, InputOption::VALUE_OPTIONAL, 'Die letzten Einträge aus dem Verlauf zeigen, ohne das Postfach anzufassen (Vorgabe: 15)', false)
         ;
     }
 
@@ -108,6 +110,14 @@ class PostfachAbrufenCommand extends Command
             $stil->error('Es wurde keine passende Mailingliste gefunden.');
 
             return Command::FAILURE;
+        }
+
+        // false heißt: Die Option wurde gar nicht angegeben. null heißt: ohne
+        // Wert angegeben, dann gilt die Vorgabe.
+        $verlauf = $input->getOption('verlauf');
+
+        if (false !== $verlauf) {
+            return $this->verlaufZeigen($listen, $stil, max(1, (int) ($verlauf ?? 15)));
         }
 
         if ($input->getOption('pruefen')) {
@@ -207,6 +217,59 @@ class PostfachAbrufenCommand extends Command
         }
 
         $stil->success('Alle Postfächer sind erreichbar.');
+
+        return Command::SUCCESS;
+    }
+
+    /**
+     * Gibt die letzten Einträge aus dem Verlauf aus.
+     *
+     * Der Verlauf ist die einzige Stelle, an der nachvollziehbar steht, was mit
+     * einer eingegangenen Nachricht geschehen ist — verteilt an wie viele,
+     * abgewiesen aus welchem Grund, oder woran der Versand scheiterte. Über die
+     * Konsole erreichbar zu sein spart bei der Fehlersuche den Umweg über das
+     * Backend, gerade wenn ohnehin schon eine SSH-Sitzung offen ist.
+     *
+     * Das Postfach wird dabei nicht angefasst.
+     *
+     * @param MailinglistenModel[] $listen Die zu zeigenden Listen
+     * @param SymfonyStyle         $stil   Für die Ausgabe
+     * @param int                  $anzahl Wie viele Einträge je Liste
+     *
+     * @return int Command::SUCCESS
+     */
+    private function verlaufZeigen(array $listen, SymfonyStyle $stil, int $anzahl): int
+    {
+        foreach ($listen as $liste) {
+            $stil->section(sprintf('%s (ID %d)', $liste->titel, (int) $liste->id));
+
+            $eintraege = MailinglistenProtokollModel::findBy(
+                ['pid=?'],
+                [(int) $liste->id],
+                ['order' => 'datum DESC', 'limit' => $anzahl],
+            );
+
+            if (null === $eintraege) {
+                $stil->writeln('Noch keine Einträge — es wurde bisher keine Nachricht verarbeitet.');
+
+                continue;
+            }
+
+            $zeilen = [];
+
+            foreach ($eintraege as $eintrag) {
+                $zeilen[] = [
+                    date('d.m. H:i', (int) $eintrag->datum),
+                    (string) $eintrag->aktion,
+                    (string) $eintrag->absender,
+                    mb_strimwidth((string) $eintrag->betreff, 0, 30, '…'),
+                    (int) $eintrag->empfaenger,
+                    mb_strimwidth((string) ($eintrag->meldung ?? ''), 0, 60, '…'),
+                ];
+            }
+
+            $stil->table(['Zeitpunkt', 'Ergebnis', 'Absender', 'Betreff', 'Empf.', 'Erläuterung'], $zeilen);
+        }
 
         return Command::SUCCESS;
     }

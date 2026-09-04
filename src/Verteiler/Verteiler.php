@@ -235,6 +235,22 @@ class Verteiler
             }
         }
 
+        // Die Zahl allein hilft bei der Fehlersuche nicht weiter; ohne die
+        // Meldung des Servers bleibt offen, ob es an einer toten Adresse, an
+        // einer Mengenbegrenzung des Anbieters oder an der Anmeldung lag.
+        $meldung = '';
+
+        if ($fehlgeschlagen > 0) {
+            $meldung = sprintf(
+                '%d von %d Zustellungen schlugen fehl. Zuletzt: %s',
+                $fehlgeschlagen,
+                $anzahl + $fehlgeschlagen,
+                $this->versand->letzterFehler(),
+            );
+        } elseif (0 === $anzahl) {
+            $meldung = 'Die Liste hat keinen empfangsberechtigten Teilnehmer.';
+        }
+
         MailinglistenProtokollModel::protokollieren(
             (int) $liste->id,
             $eingang->messageId,
@@ -242,7 +258,7 @@ class Verteiler
             $eingang->betreff,
             MailinglistenProtokollModel::AKTION_VERTEILT,
             $anzahl,
-            $fehlgeschlagen > 0 ? sprintf('%d Zustellungen schlugen fehl.', $fehlgeschlagen) : '',
+            $meldung,
         );
 
         return $anzahl;

@@ -47,6 +47,18 @@ class VersandDienst
     private array $transporte = [];
 
     /**
+     * Die Meldung des zuletzt gescheiterten Versands.
+     *
+     * Der Verteiler holt sie sich ab, um sie in den Verlauf zu schreiben. Ohne
+     * das stünde dort nur eine Zahl gescheiterter Zustellungen, und der Grund
+     * läge allein im Fehlerprotokoll der Anwendung — dort sucht bei einer
+     * stillen Mailingliste niemand.
+     *
+     * @var string
+     */
+    private string $letzterFehler = '';
+
+    /**
      * @param MailerInterface $standardMailer  Der Mailer aus der
      *                                         Contao-Installation; dient als
      *                                         Rückfallebene
@@ -89,16 +101,37 @@ class VersandDienst
             }
 
             return true;
-        } catch (TransportExceptionInterface|\RuntimeException $e) {
+        } catch (\Throwable $e) {
+            $empfaenger = implode(', ', array_map(static fn ($a) => $a->getAddress(), $mail->getTo()));
+
             $this->logger->error(sprintf(
                 'Mailingliste "%s": Versand an "%s" fehlgeschlagen: %s',
                 $liste->titel,
-                implode(', ', array_map(static fn ($a) => $a->getAddress(), $mail->getTo())),
+                $empfaenger,
                 $e->getMessage(),
             ));
 
+            $this->letzterFehler = sprintf('%s: %s', $empfaenger, $e->getMessage());
+
+            // Ein Transport, der einmal gescheitert ist, steckt womöglich in
+            // einem unbrauchbaren Zustand — etwa nach einer vom Server
+            // gekappten Verbindung. Ihn wegzuwerfen kostet einen erneuten
+            // Anmeldevorgang, rettet aber die restlichen Empfänger.
+            unset($this->transporte[(int) $liste->id]);
+
             return false;
         }
+    }
+
+    /**
+     * Gibt die Meldung des zuletzt gescheiterten Versands zurück.
+     *
+     * @return string Die Meldung samt Empfängeradresse, oder '' wenn seit dem
+     *                letzten Abruf nichts fehlgeschlagen ist
+     */
+    public function letzterFehler(): string
+    {
+        return $this->letzterFehler;
     }
 
     /**
