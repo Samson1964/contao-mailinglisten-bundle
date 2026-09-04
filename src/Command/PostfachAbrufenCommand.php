@@ -84,6 +84,7 @@ class PostfachAbrufenCommand extends Command
             ->addArgument('liste', InputArgument::OPTIONAL, 'ID einer einzelnen Mailingliste; ohne Angabe werden alle veröffentlichten bearbeitet')
             ->addOption('pruefen', null, InputOption::VALUE_NONE, 'Nur die Verbindung prüfen und die ungelesenen Nachrichten zählen, nichts verteilen und nichts verändern')
             ->addOption('verlauf', null, InputOption::VALUE_OPTIONAL, 'Die letzten Einträge aus dem Verlauf zeigen, ohne das Postfach anzufassen (Vorgabe: 15)', false)
+            ->addOption('testmail', null, InputOption::VALUE_REQUIRED, 'Eine Testnachricht über den SMTP-Zugang der Liste an diese Adresse schicken und die Antwort des Servers ausgeben. Ohne Adresse gehen die Tests an alle Teilnehmer der Liste: "alle".')
         ;
     }
 
@@ -118,6 +119,12 @@ class PostfachAbrufenCommand extends Command
 
         if (false !== $verlauf) {
             return $this->verlaufZeigen($listen, $stil, max(1, (int) ($verlauf ?? 15)));
+        }
+
+        $testmail = $input->getOption('testmail');
+
+        if (null !== $testmail && '' !== $testmail) {
+            return $this->testmailSenden($listen, $stil, (string) $testmail);
         }
 
         if ($input->getOption('pruefen')) {
@@ -217,6 +224,84 @@ class PostfachAbrufenCommand extends Command
         }
 
         $stil->success('Alle Postfächer sind erreichbar.');
+
+        return Command::SUCCESS;
+    }
+
+    /**
+     * Verschickt Testnachrichten und meldet, was der Server dazu sagt.
+     *
+     * Der Zweck ist die Trennung zweier Fälle, die von außen gleich aussehen:
+     * Der SMTP-Server nimmt die Adresse gar nicht an (dann steht seine
+     * Ablehnung hier), oder er nimmt sie an und die Nachricht bleibt trotzdem
+     * aus (dann liegt es am empfangenden Server, nicht mehr an dieser
+     * Erweiterung).
+     *
+     * Mit „alle" gehen Tests an sämtliche Teilnehmer der Liste. Das ist der
+     * schnellste Weg, ein Muster zu erkennen, wenn manche Adressen etwas
+     * bekommen und andere nicht.
+     *
+     * @param MailinglistenModel[] $listen Die betroffenen Listen
+     * @param SymfonyStyle         $stil   Für die Ausgabe
+     * @param string               $ziel   Eine Adresse, oder „alle"
+     *
+     * @return int Command::SUCCESS, wenn jeder Versand angenommen wurde
+     */
+    private function testmailSenden(array $listen, SymfonyStyle $stil, string $ziel): int
+    {
+        $fehler = 0;
+
+        foreach ($listen as $liste) {
+            $stil->section(sprintf('%s (ID %d)', $liste->titel, (int) $liste->id));
+
+            $stil->writeln(sprintf(
+                'Versand über %s, Absender %s',
+                '' !== trim((string) $liste->smtpHost) ? $liste->smtpHost.':'.((int) $liste->smtpPort ?: 587).' ('.$liste->smtpVerschluesselung.')' : 'den Contao-Mailer',
+                $liste->adresse,
+            ));
+
+            $ziele = [];
+
+            if ('alle' === strtolower($ziel)) {
+                $empfaenger = MailinglistenAbonnentModel::findEmpfaenger((int) $liste->id);
+
+                if (null !== $empfaenger) {
+                    foreach ($empfaenger as $einzelner) {
+                        $ziele[] = (string) $einzelner->email;
+                    }
+                }
+
+                if (!$ziele) {
+                    $stil->writeln('  Kein empfangsberechtigter Teilnehmer vorhanden.');
+
+                    continue;
+                }
+            } else {
+                $ziele[] = $ziel;
+            }
+
+            foreach ($ziele as $adresse) {
+                $meldung = $this->versand->testnachricht($liste, $adresse);
+
+                if ('' === $meldung) {
+                    $stil->writeln(sprintf('  <info>angenommen</info>  %s', $adresse));
+                } else {
+                    ++$fehler;
+                    $stil->writeln(sprintf('  <error>abgelehnt</error>   %s', $adresse));
+                    $stil->writeln(sprintf('              %s', $meldung));
+                }
+            }
+        }
+
+        $this->versand->verbindungenSchliessen();
+
+        if ($fehler > 0) {
+            $stil->warning(sprintf('%d Adresse(n) hat der Server nicht angenommen.', $fehler));
+
+            return Command::FAILURE;
+        }
+
+        $stil->success('Der Server hat jede Adresse angenommen. Kommt trotzdem nichts an, liegt es am empfangenden Server.');
 
         return Command::SUCCESS;
     }

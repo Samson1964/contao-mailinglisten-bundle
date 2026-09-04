@@ -17,6 +17,7 @@ use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mailer\Transport\Smtp\EsmtpTransport;
 use Symfony\Component\Mailer\Transport\TransportInterface;
+use Symfony\Component\Mime\Address;
 use Symfony\Component\Mime\Email;
 
 /**
@@ -132,6 +133,57 @@ class VersandDienst
     public function letzterFehler(): string
     {
         return $this->letzterFehler;
+    }
+
+    /**
+     * Verschickt eine Testnachricht über den Zugang einer Liste.
+     *
+     * Dient allein der Fehlersuche: Sie beantwortet die Frage, ob der
+     * SMTP-Server eine bestimmte Empfängeradresse überhaupt annimmt. Nimmt er
+     * sie an und kommt trotzdem nichts an, liegt es nicht mehr am Versand,
+     * sondern am empfangenden Server — eine Unterscheidung, die sich sonst nur
+     * mit Zugriff auf beide Mailserver treffen lässt.
+     *
+     * Die Nachricht trägt bewusst **nicht** die Listenkopfzeilen: Sie soll
+     * nicht als Listennachricht gelten und nicht in eine Filterregel des
+     * Empfängers laufen, die das Ergebnis verfälschen würde.
+     *
+     * @param MailinglistenModel $liste Die Liste, über deren Zugang versendet wird
+     * @param string             $an    Die zu prüfende Empfängeradresse
+     *
+     * @return string Leerer Text bei Erfolg, sonst die Meldung des Servers
+     */
+    public function testnachricht(MailinglistenModel $liste, string $an): string
+    {
+        $mail = (new Email())
+            ->from(new Address((string) $liste->adresse, (string) $liste->titel))
+            ->to($an)
+            ->subject(sprintf('Testnachricht der Mailingliste %s', $liste->titel))
+            ->text(sprintf(
+                "Diese Nachricht prüft, ob der Versand der Mailingliste \"%s\" an %s ankommt.\n\n"
+                ."Sie wurde von Hand ausgelöst und ist kein Beitrag der Liste.\n"
+                ."Zeitpunkt: %s",
+                $liste->titel,
+                $an,
+                date('d.m.Y H:i:s'),
+            ))
+        ;
+
+        try {
+            $transport = $this->transportFuer($liste);
+
+            if (null === $transport) {
+                $this->standardMailer->send($mail);
+            } else {
+                $transport->send($mail);
+            }
+
+            return '';
+        } catch (\Throwable $e) {
+            unset($this->transporte[(int) $liste->id]);
+
+            return $e->getMessage();
+        }
     }
 
     /**
