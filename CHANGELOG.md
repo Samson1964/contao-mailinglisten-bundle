@@ -2,6 +2,16 @@
 
 Alle nennenswerten Änderungen an diesem Bundle.
 
+## Version 1.0.1 (2026-09-04)
+
+* Add: Hilfe-Assistent an der Fußzeile, am Ablehnungstext und am Text der
+  Antragsbestätigung. Er erklärt jeden Platzhalter, wodurch er ersetzt wird
+  und mit welchem Beispielwert, dazu den selbsttätigen Abmeldehinweis und die
+  Frage, wo welcher Text erscheint.
+* Fix: Keine Zwischenüberschriften mehr im Verlauf. Contao setzte dort vor
+  jede Gruppe eine Überschrift mit dem Rohwert des Sortierfeldes — bei einem
+  Datumsfeld also die nackte Unix-Zeit.
+
 ## Version 1.0.0 (2026-09-04)
 
 Erste Fassung.
