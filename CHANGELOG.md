@@ -2,6 +2,13 @@
 
 Alle nennenswerten Änderungen an diesem Bundle.
 
+## Version 1.0.2 (2026-09-04)
+
+* Fix: Der Hilfe-Assistent blieb leer. `explanation` stand in `eval`, gelesen
+  wird es aber von der Feldebene des DCA (`BackendHelp` in beiden
+  Contao-Fassungen). `helpwizard` gehört dagegen weiterhin in `eval` — die
+  Aufteilung ist der Stolperstein.
+
 ## Version 1.0.1 (2026-09-04)
 
 * Add: Hilfe-Assistent an der Fußzeile, am Ablehnungstext und am Text der

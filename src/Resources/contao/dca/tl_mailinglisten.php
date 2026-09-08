@@ -323,7 +323,8 @@ $GLOBALS['TL_DCA']['tl_mailinglisten'] = array
 		(
 			'exclude'                 => true,
 			'inputType'               => 'textarea',
-			'eval'                    => array('rows'=>4, 'style'=>'height:80px', 'decodeEntities'=>true, 'helpwizard'=>true, 'explanation'=>'mlPlatzhalter', 'tl_class'=>'clr'),
+			'explanation'             => 'mlPlatzhalter',
+			'eval'                    => array('rows'=>4, 'style'=>'height:80px', 'decodeEntities'=>true, 'helpwizard'=>true, 'tl_class'=>'clr'),
 			'sql'                     => "text NULL",
 		),
 
@@ -364,7 +365,8 @@ $GLOBALS['TL_DCA']['tl_mailinglisten'] = array
 		(
 			'exclude'                 => true,
 			'inputType'               => 'textarea',
-			'eval'                    => array('rows'=>5, 'style'=>'height:100px', 'decodeEntities'=>true, 'helpwizard'=>true, 'explanation'=>'mlPlatzhalter', 'tl_class'=>'clr'),
+			'explanation'             => 'mlPlatzhalter',
+			'eval'                    => array('rows'=>5, 'style'=>'height:100px', 'decodeEntities'=>true, 'helpwizard'=>true, 'tl_class'=>'clr'),
 			'sql'                     => "text NULL",
 		),
 		'ablehnungSenden' => array
@@ -379,7 +381,8 @@ $GLOBALS['TL_DCA']['tl_mailinglisten'] = array
 		(
 			'exclude'                 => true,
 			'inputType'               => 'textarea',
-			'eval'                    => array('rows'=>5, 'style'=>'height:100px', 'decodeEntities'=>true, 'helpwizard'=>true, 'explanation'=>'mlPlatzhalter', 'tl_class'=>'clr'),
+			'explanation'             => 'mlPlatzhalter',
+			'eval'                    => array('rows'=>5, 'style'=>'height:100px', 'decodeEntities'=>true, 'helpwizard'=>true, 'tl_class'=>'clr'),
 			'sql'                     => "text NULL",
 		),
 
