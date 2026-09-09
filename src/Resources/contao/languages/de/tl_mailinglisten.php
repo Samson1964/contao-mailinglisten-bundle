@@ -45,7 +45,7 @@ $GLOBALS['TL_LANG']['tl_mailinglisten']['bestaetigungText'] = array('Text der An
 $GLOBALS['TL_LANG']['tl_mailinglisten']['ablehnungSenden'] = array('Absender über die Ablehnung unterrichten', 'Bei einer Adresse, die viel Spam bekommt, besser abschalten: Jede Ablehnung an eine gefälschte Absenderadresse belästigt einen Unbeteiligten.');
 $GLOBALS['TL_LANG']['tl_mailinglisten']['ablehnungText'] = array('Text der Ablehnung', 'Bleibt das Feld leer, wird ein Standardtext verwendet. Platzhalter wie bei der Fußzeile.');
 
-$GLOBALS['TL_LANG']['tl_mailinglisten']['pruefintervall'] = array('Prüfintervall in Minuten', 'Wie oft das Postfach abgefragt wird. 0 heißt: bei jedem Cron-Durchgang.');
+$GLOBALS['TL_LANG']['tl_mailinglisten']['pruefintervall'] = array('Prüfintervall in Minuten', 'Frühestens nach dieser Zeit wird das Postfach wieder abgefragt. 0 heißt: bei jedem Cron-Durchgang. Der Wert kann den Abstand nur verlängern, nie verkürzen — häufiger als der Cronjob von Contao selbst läuft, geht es nicht.');
 $GLOBALS['TL_LANG']['tl_mailinglisten']['hoechstzahl'] = array('Nachrichten je Durchgang', 'Begrenzt die Laufzeit eines Durchgangs. Was übrig bleibt, kommt beim nächsten Mal an die Reihe.');
 $GLOBALS['TL_LANG']['tl_mailinglisten']['published'] = array('Liste aktiv', 'Nur aktive Listen werden vom Cronjob abgefragt. Das Postfach einer abgeschalteten Liste bleibt unangetastet.');
 

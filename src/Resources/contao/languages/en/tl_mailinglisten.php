@@ -45,7 +45,7 @@ $GLOBALS['TL_LANG']['tl_mailinglisten']['bestaetigungText'] = array('Request con
 $GLOBALS['TL_LANG']['tl_mailinglisten']['ablehnungSenden'] = array('Tell senders about a rejection', 'Better turned off for an address that receives a lot of spam: every rejection sent to a forged sender address bothers an uninvolved third party.');
 $GLOBALS['TL_LANG']['tl_mailinglisten']['ablehnungText'] = array('Rejection text', 'Left empty, a default text is used. Placeholders as for the footer.');
 
-$GLOBALS['TL_LANG']['tl_mailinglisten']['pruefintervall'] = array('Check interval in minutes', 'How often the mailbox is polled. 0 means on every cron run.');
+$GLOBALS['TL_LANG']['tl_mailinglisten']['pruefintervall'] = array('Check interval in minutes', 'The mailbox is polled again no sooner than this. 0 means on every cron run. The value can only lengthen the interval, never shorten it — polling cannot happen more often than Contao runs its cron.');
 $GLOBALS['TL_LANG']['tl_mailinglisten']['hoechstzahl'] = array('Messages per run', 'Limits the duration of a single run. Whatever is left over is handled next time.');
 $GLOBALS['TL_LANG']['tl_mailinglisten']['published'] = array('List active', 'Only active lists are polled by the cron job. The mailbox of a disabled list is left untouched.');
 

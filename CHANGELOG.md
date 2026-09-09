@@ -2,6 +2,18 @@
 
 Alle nennenswerten Änderungen an diesem Bundle.
 
+## Version 1.2.4 (2026-09-09)
+
+* Change: Die Beschriftung des Prüfintervalls sagt jetzt, was sie tut.
+  „Wie oft das Postfach abgefragt wird" ließ erwarten, dass ein Wert von
+  5 auch alle fünf Minuten bedeutet. Tatsächlich kann das Feld den
+  Abstand nur **verlängern**, nie verkürzen: Der Dienst läuft bei jedem
+  Cron-Durchgang von Contao mit, und erst dort entscheidet das Feld, ob
+  die Liste an der Reihe ist. Fragt Contao seinen Cron nur alle zehn
+  Minuten ab, wird auch ein Postfach mit „5" nur alle zehn Minuten
+  geprüft. `docs/einrichtung.md` beschreibt, wie sich der wirkliche Takt
+  aus `tl_cron_job` ablesen lässt.
+
 ## Version 1.2.3 (2026-09-09)
 
 * Change: `docs/betrieb.md` erklärt den Versandfehler „Connection

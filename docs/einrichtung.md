@@ -141,8 +141,30 @@ Zur genauen Erkennung der Kennwörter siehe [Wie die Verteilung entscheidet](ver
 
 | Feld | Bedeutung |
 | --- | --- |
-| **Prüfintervall in Minuten** | Wie oft dieses Postfach abgefragt wird. 0 heißt: bei jedem Cron-Durchgang. |
+| **Prüfintervall in Minuten** | Frühestens nach dieser Zeit wird das Postfach wieder abgefragt. 0 heißt: bei jedem Cron-Durchgang. |
 | **Nachrichten je Durchgang** | Obergrenze für einen Lauf. Was übrig bleibt, kommt beim nächsten Mal an die Reihe. 25 ist ein vernünftiger Wert; bei Listen mit vielen Anhängen eher weniger. |
+
+**Das Prüfintervall kann den Abstand nur verlängern, nie verkürzen.** Der
+Dienst des Bundles ist als `minutely` angemeldet, läuft also bei jedem
+Cron-Durchgang von Contao mit; erst dort entscheidet das Feld, ob diese Liste
+schon wieder an der Reihe ist. Fragt Contao seinen Cron nur alle zehn Minuten
+ab, wird auch ein Postfach mit „5" nur alle zehn Minuten geprüft.
+
+Wie oft der Cron wirklich läuft, verrät die Tabelle `tl_cron_job`:
+
+```sql
+SELECT name, FROM_UNIXTIME(lastRun) AS letzter_lauf FROM tl_cron_job ORDER BY name;
+```
+
+Ein echter Systemcron sollte minütlich feuern; Contao empfiehlt dafür
+
+```
+* * * * * /usr/bin/php /pfad/zur/installation/vendor/bin/contao-console contao:cron
+```
+
+Ohne Systemcron springt Contao auf den Aufruf im Browser um — dann hängt der
+Takt daran, ob und wann jemand die Webseite besucht. Auf einer wenig besuchten
+Seite kann eine Nachricht dann lange liegen bleiben.
 
 ## Veröffentlichung
 
