@@ -73,11 +73,23 @@ class VersandDienst
      *                                         Die Hülle sorgt dafür, dass der
      *                                         Eintrag außer in var/logs auch im
      *                                         System-Log erscheint.
+     * @param LoggerInterface $transportProtokoll Geht an den SMTP-Transport von
+     *                                         Symfony und **muss** ein nackter
+     *                                         Monolog-Kanal ohne SystemLogger
+     *                                         sein. Der Transport meldet jeden
+     *                                         Verbindungsaufbau („Email
+     *                                         transport starting“) als
+     *                                         gewöhnliche Information; mit der
+     *                                         Hülle bekäme jede dieser Zeilen
+     *                                         einen ContaoContext und stünde
+     *                                         als **Fehler** im System-Log.
+     *                                         Genau das ist in 1.2.1 passiert.
      */
     public function __construct(
         private readonly MailerInterface $standardMailer,
         private readonly Geheimspeicher $geheimspeicher,
         private readonly LoggerInterface $logger,
+        private readonly LoggerInterface $transportProtokoll,
     ) {
     }
 
@@ -256,7 +268,8 @@ class VersandDienst
             (int) $liste->smtpPort ?: 587,
             $tls,
             null,
-            $this->logger,
+            // Bewusst nicht $this->logger: siehe Konstruktordoku.
+            $this->transportProtokoll,
         );
 
         if ('' !== trim((string) $liste->smtpBenutzer)) {

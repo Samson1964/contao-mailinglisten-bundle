@@ -61,9 +61,14 @@ services:
 
     Schachbulle\ContaoMailinglistenBundle\Versand\NachrichtenBauer: ~
 
+    # Der zweite Protokollierer geht an den SMTP-Transport von Symfony und ist
+    # mit Absicht der nackte Kanal: Der Transport meldet jeden
+    # Verbindungsaufbau als Information, und mit dem SystemLogger stünde jede
+    # dieser Zeilen als Fehler im System-Log.
     Schachbulle\ContaoMailinglistenBundle\Versand\VersandDienst:
         arguments:
             $logger: '@schachbulle_mailinglisten.logger.fehler'
+            $transportProtokoll: '@monolog.logger.contao.error'
 
     # --- Verteilung --------------------------------------------------------
 

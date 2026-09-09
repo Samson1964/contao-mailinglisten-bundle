@@ -2,6 +2,21 @@
 
 Alle nennenswerten Änderungen an diesem Bundle.
 
+## Version 1.2.2 (2026-09-09)
+
+* Fix: Statusmeldungen des SMTP-Transports standen als **Fehler** im
+  System-Log („Email transport starting"). Ursache war die Neuerung aus
+  1.2.1: Der Transport von Symfony bekam denselben Protokollierer wie das
+  Bundle, also den in Contaos `SystemLogger` gehüllten Kanal — damit
+  bekam jede beiläufige Zeile des Transports einen `ContaoContext` und
+  die Aktion „Fehler". Der Transport erhält jetzt den nackten
+  Monolog-Kanal; seine Meldungen stehen wieder nur in `var/logs`.
+  Gescheiterte Zustellungen protokolliert das Bundle davon unberührt
+  selbst — mit Liste, Empfänger und Serverantwort.
+* Change: `tools/dienste-pruefen.php` erkennt diesen Fehler künftig. Es
+  meldet jeden Protokollierer, der in einen `SystemLogger` gehüllt ist
+  und im Quelltext an einen fremden Konstruktor weitergereicht wird.
+
 ## Version 1.2.1 (2026-09-09)
 
 * Add: Einträge im System-Log von Contao. Jede verteilte Nachricht

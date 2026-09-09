@@ -103,6 +103,73 @@ function konstruktorParameter(string $klassendatei): array
 }
 
 /**
+ * Sagt, ob eine Eigenschaft im Quelltext als Argument eines `new` auftaucht.
+ *
+ * Gesucht wird `$this-><name>` innerhalb der Argumentliste eines
+ * `new Irgendwas(…)`. Die Klammerebene wird mitgezählt, damit auch
+ * mehrzeilige Aufrufe mit verschachtelten Klammern richtig erfasst werden —
+ * ein regulärer Ausdruck käme damit nicht zurecht.
+ *
+ * @param string $klassendatei Pfad zur PHP-Datei
+ * @param string $name         Name der Eigenschaft ohne `$this->`
+ *
+ * @return bool true, wenn die Eigenschaft an einen Konstruktor weitergereicht
+ *              wird
+ */
+function wirdWeitergereicht(string $klassendatei, string $name): bool
+{
+    $marken = token_get_all(file_get_contents($klassendatei));
+    $anzahl = \count($marken);
+
+    for ($i = 0; $i < $anzahl; ++$i) {
+        if (\T_NEW !== ($marken[$i][0] ?? null)) {
+            continue;
+        }
+
+        // Bis zur öffnenden Klammer des Aufrufs vorspulen. Steht dort keine
+        // (etwa bei `new $klasse;`), ist nichts zu prüfen.
+        $j = $i;
+
+        while ($j < $anzahl && '(' !== $marken[$j]) {
+            if (';' === $marken[$j]) {
+                continue 2;
+            }
+
+            ++$j;
+        }
+
+        $ebene = 0;
+
+        for ($k = $j; $k < $anzahl; ++$k) {
+            if ('(' === $marken[$k]) {
+                ++$ebene;
+
+                continue;
+            }
+
+            if (')' === $marken[$k]) {
+                if (0 === --$ebene) {
+                    break;
+                }
+
+                continue;
+            }
+
+            // `$this` `->` `name` als Folge dreier Marken.
+            if (
+                \is_array($marken[$k]) && \T_VARIABLE === $marken[$k][0] && '$this' === $marken[$k][1]
+                && \is_array($marken[$k + 1] ?? null) && \T_OBJECT_OPERATOR === $marken[$k + 1][0]
+                && \is_array($marken[$k + 2] ?? null) && $name === $marken[$k + 2][1]
+            ) {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+/**
  * Ermittelt die Datei zu einem Klassennamen dieses Bundles.
  *
  * @param string $klasse     Voll qualifizierter Name
@@ -171,6 +238,19 @@ foreach ($zeilen as $nr => $zeile) {
     }
 }
 
+// Dienste, die einen Monolog-Kanal in Contaos SystemLogger hüllen. Ihre
+// Einträge landen im System-Log — das ist gewollt, solange nur eigener Code
+// sie benutzt. Wird ein solcher Protokollierer an fremden Code weitergereicht,
+// bekommt jede beiläufige Statusmeldung jener Klasse einen ContaoContext und
+// steht mit der Aktion des Dienstes im System-Log. Siehe Prüfung 5.
+$gehuellt = [];
+
+foreach ($dienste as $id => $dienst) {
+    if (str_contains((string) ($dienst['klasse'] ?? ''), 'Monolog\\SystemLogger')) {
+        $gehuellt[$id] = true;
+    }
+}
+
 foreach ($dienste as $id => $dienst) {
     $klasse = $dienst['klasse'] ?? (str_contains($id, '\\') ? $id : null);
     $pfad = null === $klasse ? null : klassendatei($klasse, $wurzel, $namensraum);
@@ -216,6 +296,28 @@ foreach ($dienste as $id => $dienst) {
 
             if (!isset($dienste[$verweis])) {
                 printf("%-60s VERWEIS INS LEERE: @%s\n", $id, $verweis);
+                ++$probleme;
+            }
+        }
+
+        // --- 5. Ein SystemLogger gehört nicht in fremde Hände -----------
+        //
+        // Contaos SystemLogger hängt jedem Eintrag einen ContaoContext an,
+        // damit er im System-Log erscheint. Reicht man ihn an fremden Code
+        // weiter — etwa an Symfonys SMTP-Transport —, wandert auch dessen
+        // beiläufiges „Email transport starting“ ins System-Log, und zwar
+        // unter der Aktion des Dienstes. In 1.2.1 stand deshalb eine
+        // Statusmeldung des Mailers als „Fehler“ im Log.
+
+        if (\is_string($name) && isset($gehuellt[$verweis]) && null !== $pfad && is_file($pfad)) {
+            ++$geprueft;
+
+            if (wirdWeitergereicht($pfad, $name)) {
+                printf(
+                    "%-60s \$%s ist ein SystemLogger und wird an fremden Code weitergereicht\n",
+                    $id,
+                    $name,
+                );
                 ++$probleme;
             }
         }
