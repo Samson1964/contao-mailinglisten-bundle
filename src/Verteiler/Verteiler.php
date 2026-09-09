@@ -53,7 +53,14 @@ class Verteiler
      * @param NachrichtenBauer       $bauer          Baut Verteilung, Ablehnung und Bestätigungen
      * @param Kennungspruefer        $kennung        Erkennt die Steuerwörter im Betreff
      * @param Geheimspeicher         $geheimspeicher Entschlüsselt das IMAP-Kennwort
-     * @param LoggerInterface        $logger         Nimmt Fehler auf, die keine Ausnahme wert sind
+     * @param LoggerInterface        $logger         Nimmt Fehler auf, die keine Ausnahme wert
+     *                                               sind; im Container ein SystemLogger mit der
+     *                                               Aktion ERROR, der auch ins System-Log schreibt
+     * @param LoggerInterface        $protokoll      Hält den gewöhnlichen Betrieb fest — jede
+     *                                               Verteilung als Zeile im System-Log unter der
+     *                                               Aktion „E-Mail". Der Verlauf der Liste bleibt
+     *                                               davon unberührt; er führt dieselben Vorgänge
+     *                                               ausführlicher, aber nur innerhalb des Moduls.
      */
     public function __construct(
         private readonly PostfachLeserInterface $leser,
@@ -62,6 +69,7 @@ class Verteiler
         private readonly Kennungspruefer $kennung,
         private readonly Geheimspeicher $geheimspeicher,
         private readonly LoggerInterface $logger,
+        private readonly LoggerInterface $protokoll,
     ) {
     }
 
@@ -267,6 +275,19 @@ class Verteiler
             $anzahl,
             $meldung,
         );
+
+        // Zusätzlich ins System-Log. Der Verlauf der Liste steht nur im
+        // Mailinglisten-Modul und wird deshalb allein von der Betreuung
+        // gesehen; wer als Administrator dem Weg einer Nachricht durch die
+        // ganze Installation folgt, sucht im System-Log — und fand dort
+        // bisher nichts.
+        $this->protokoll->info(sprintf(
+            'Mailingliste "%s": Nachricht von "%s" an %d Empfänger verteilt%s',
+            $liste->titel,
+            $eingang->absender,
+            $anzahl,
+            '' === $meldung ? '.' : '. '.$meldung,
+        ));
 
         return $anzahl;
     }

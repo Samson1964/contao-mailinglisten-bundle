@@ -23,6 +23,46 @@ technische Aufgabe. Die gespeicherte Message-ID verhindert, dass eine Nachricht
 ein zweites Mal verteilt wird. Wer aufräumt, sollte deshalb nur alte Einträge
 löschen, nicht die der letzten Tage.
 
+## Das System-Log
+
+Der Verlauf steht nur im Mailinglisten-Modul und zeigt nur diese eine Liste.
+Wer als Administrator dem Weg einer Nachricht durch die ganze Installation
+folgt, schaut ins **System-Log** von Contao. Dort steht seit Fassung 1.2.1:
+
+| Aktion | Wann |
+| --- | --- |
+| **E-Mail** | Jede verteilte Nachricht, mit Liste, Absender und Empfängerzahl. |
+| **Fehler** | Gescheiterte Zustellungen, unlesbare Nachrichten, abgewiesene Postfachverbindungen, Fehler bei An- und Abmeldung. |
+| **Cron** | Die Zusammenfassung eines Durchgangs — aber nur, wenn wirklich etwas geschah. Sonst schriebe der Minutentakt das Log zu. |
+
+Nicht im System-Log stehen Ablehnungen, Aufnahmeanträge und Abmeldungen. Sie
+gehören zum Betrieb der einzelnen Liste und stehen vollständig im Verlauf; im
+System-Log wären sie Rauschen.
+
+**Bleibt das System-Log trotzdem leer**, fehlt in der Installation der Handler,
+der es füllt. Er steht in `config/config_prod.yaml` und stammt aus der Vorlage
+des Contao Managers:
+
+```yaml
+monolog:
+    handlers:
+        contao:
+            type: service
+            id: contao.monolog.handler
+```
+
+Wurde die Datei einmal von Hand überarbeitet, kann der Block herausgefallen
+sein. Dann schreibt kein einziges Contao-Bundle mehr ins System-Log, nicht nur
+dieses.
+
+Wer die Einträge lieber nur in `var/logs/` hätte, überschreibt in der eigenen
+`config/services.yaml` die drei Dienste
+`schachbulle_mailinglisten.logger.email`, `…logger.fehler` und `…logger.cron`
+mit den nackten Monolog-Kanälen (`@monolog.logger.contao.error` bzw.
+`@monolog.logger.contao.cron`). Ohne Contaos `SystemLogger` fehlt der
+`ContaoContext`, und der `ContaoTableHandler` verwirft den Datensatz — was
+genau der Zustand bis Fassung 1.2.0 war.
+
 ## Der Cronjob läuft nicht
 
 Das häufigste Problem. In Contaos Voreinstellung wird der Cron über
@@ -71,6 +111,46 @@ ist immer die Listenadresse, dazu kommen `List-Id`, `List-Post`, `Sender` und
    Listenadresse in aller Regel nicht zuständig. SPF schlägt dann fehl.
 2. **SPF und DKIM für die Domäne einrichten.** Das geschieht beim Anbieter der
    Domäne, nicht in Contao.
+
+### Wenn es trotzdem passiert: DMARC-Berichte auswerten
+
+Landen Nachrichten weiterhin im Spam, obwohl SPF und DKIM bestehen, hilft nur
+die Absenderreputation — und die beginnt mit der Frage, wer alles im Namen der
+Domäne verschickt. Ein DMARC-Eintrag mit Berichtsadresse liefert die Antwort:
+
+```
+_dmarc.<domäne>   TXT   v=DMARC1; p=none; rua=mailto:dmarc@<domäne>; fo=1
+```
+
+Nach einigen Tagen treffen Aggregatberichte der großen Anbieter ein. Die beiden
+Werkzeuge im Bundle werten sie aus, ohne dass man die Anhänge von Hand
+entpacken müsste — sie lesen `.eml` unmittelbar und kommen mit gzip wie zip
+zurecht:
+
+```bash
+php tools/dmarc-auswerten.php /pfad/zum/ordner
+```
+
+Das zeigt jede Quell-IP mit Umkehrname, Anzahl und SPF/DKIM-Ergebnis.
+
+```bash
+php tools/dmarc-fehler.php /pfad/zum/ordner
+```
+
+Das zeigt nur die Nachrichten, die DMARC **nicht** bestehen — also solche, bei
+denen weder SPF noch DKIM ausgerichtet ist. Nur diese wären von einer
+Anhebung auf `p=quarantine` betroffen.
+
+**Eine Fehlerquote immer nach Meldern aufschlüsseln, bevor man sie dem eigenen
+Versand anlastet.** Weiterleitungen brechen DKIM prinzipbedingt; ein Anbieter,
+bei dem viele weitergeleitete Nachrichten ankommen, meldet deshalb reihenweise
+Fehlschläge, während alle anderen dieselbe Signatur einwandfrei bestätigen.
+Erst wenn die Fehler über die Melder streuen, liegt es am eigenen Versand.
+
+Ist kein unbekannter Versandweg mehr in den Berichten, kann die Richtlinie von
+`p=none` auf `p=quarantine` steigen — zunächst mit `pct=25`, damit ein
+übersehener Weg auffällt, bevor er flächendeckend schadet. Eine durchgesetzte
+Richtlinie zählt bei allen großen Anbietern positiv.
 
 ## Ablehnungen und Spam
 

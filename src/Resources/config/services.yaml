@@ -4,6 +4,41 @@ services:
         autoconfigure: true
         public: false
 
+    # --- Protokollierung ---------------------------------------------------
+
+    # Ein Monolog-Aufruf allein landet nur in var/logs. Ins System-Log von
+    # Contao (tl_log) kommt ein Eintrag erst, wenn er einen ContaoContext
+    # mitbringt: Der ContaoTableHandler verwirft jeden Datensatz ohne diesen
+    # Zusatz wortlos. Contaos SystemLogger hängt ihn an — die Klasse ist in
+    # 4.13 und 5.7 zeichengleich (Konstruktor `(LoggerInterface, string)`,
+    # nicht als intern gekennzeichnet), taugt also für beide Fassungen.
+    #
+    # Die Aktion ist je Dienst fest und füllt die gleichnamige Spalte in
+    # tl_log; danach lässt sich das System-Log im Backend filtern.
+
+    # Der gewöhnliche Betrieb: jede verteilte Nachricht eine Zeile.
+    schachbulle_mailinglisten.logger.email:
+        class: Contao\CoreBundle\Monolog\SystemLogger
+        arguments:
+            - '@monolog.logger.contao.error'
+            - !php/const Contao\CoreBundle\Monolog\ContaoContext::EMAIL
+
+    # Fehler, die den Lauf nicht abbrechen — gescheiterte Zustellungen,
+    # unlesbare Nachrichten, abgewiesene Postfachverbindungen.
+    schachbulle_mailinglisten.logger.fehler:
+        class: Contao\CoreBundle\Monolog\SystemLogger
+        arguments:
+            - '@monolog.logger.contao.error'
+            - !php/const Contao\CoreBundle\Monolog\ContaoContext::ERROR
+
+    # Die Zusammenfassung eines Cron-Durchgangs. Sie entsteht nur, wenn
+    # wirklich etwas geschah — sonst schriebe der Minutentakt das Log zu.
+    schachbulle_mailinglisten.logger.cron:
+        class: Contao\CoreBundle\Monolog\SystemLogger
+        arguments:
+            - '@monolog.logger.contao.cron'
+            - !php/const Contao\CoreBundle\Monolog\ContaoContext::CRON
+
     # --- Verschlüsselung ---------------------------------------------------
 
     # Der Schlüssel für die Postfach-Kennwörter wird aus APP_SECRET abgeleitet.
@@ -28,7 +63,7 @@ services:
 
     Schachbulle\ContaoMailinglistenBundle\Versand\VersandDienst:
         arguments:
-            $logger: '@monolog.logger.contao.error'
+            $logger: '@schachbulle_mailinglisten.logger.fehler'
 
     # --- Verteilung --------------------------------------------------------
 
@@ -36,7 +71,8 @@ services:
 
     Schachbulle\ContaoMailinglistenBundle\Verteiler\Verteiler:
         arguments:
-            $logger: '@monolog.logger.contao.error'
+            $logger: '@schachbulle_mailinglisten.logger.fehler'
+            $protokoll: '@schachbulle_mailinglisten.logger.email'
 
     # --- Regelmäßiger Lauf -------------------------------------------------
 
@@ -45,7 +81,7 @@ services:
     # Dienst-Tag kennt nur ein einziges Intervall für alle.
     Schachbulle\ContaoMailinglistenBundle\Cron\MailinglistenCron:
         arguments:
-            $logger: '@monolog.logger.contao.cron'
+            $logger: '@schachbulle_mailinglisten.logger.cron'
         tags:
             - name: contao.cronjob
               interval: minutely
@@ -58,7 +94,7 @@ services:
     Schachbulle\ContaoMailinglistenBundle\Controller\FrontendModule\AnmeldungController:
         arguments:
             $tokenManager: '@contao.csrf.token_manager'
-            $logger: '@monolog.logger.contao.error'
+            $logger: '@schachbulle_mailinglisten.logger.fehler'
         tags:
             - name: contao.frontend_module
               category: mailinglisten
@@ -157,6 +193,6 @@ services:
     # bricht mit einem ArgumentCountError ab.
     Schachbulle\ContaoMailinglistenBundle\Controller\AbmeldenController:
         arguments:
-            $logger: '@monolog.logger.contao.error'
+            $logger: '@schachbulle_mailinglisten.logger.fehler'
         tags:
             - { name: controller.service_arguments }

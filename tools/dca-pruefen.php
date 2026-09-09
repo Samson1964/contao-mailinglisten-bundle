@@ -60,12 +60,19 @@ function dcaLesen(string $datei): array
             const POSITION_PREPEND = "prepend";
             const POSITION_APPEND = "append";
             public static function create(): self { return new self(); }
+            public function addLegend($name, $parent = null, $position = null, $hide = false): self
+            {
+                $GLOBALS["__legenden"][] = $name;
+
+                return $this;
+            }
             public function __call($name, $args): self { return $this; }
         }');
     }
 
     $GLOBALS['TL_DCA'] = [];
     $GLOBALS['TL_LANG'] = $GLOBALS['TL_LANG'] ?? [];
+    $GLOBALS['__legenden'] = [];
 
     require $datei;
 
@@ -151,6 +158,21 @@ foreach (glob($dcaPfad.'/*.php') as $datei) {
 
     $ohneLabel = ['id', 'pid', 'tstamp', 'sorting'];
 
+    // Ein Feld darf seine Beschriftung aus einer anderen Tabelle beziehen:
+    // `'label' => &$GLOBALS['TL_LANG']['tl_user']['mailinglisten']`. Der Kern
+    // macht das in tl_user_group durchweg so und lädt dafür zu Beginn seiner
+    // eigenen DCA ein `System::loadLanguageFile('tl_user')`. Nach dem Einlesen
+    // ist von der Referenz nichts mehr zu sehen — der Verweis steht nur noch
+    // im Quelltext, also wird der gelesen.
+    $quelltext = file_get_contents($datei);
+    $verweist = [];
+
+    if (preg_match_all('/&\$GLOBALS\[.TL_LANG.\]\[.(\w+).\]\[.(\w+).\]/', $quelltext, $treffer, PREG_SET_ORDER)) {
+        foreach ($treffer as $t) {
+            $verweist[$t[2]] = $t[1];
+        }
+    }
+
     foreach (['de', 'en'] as $sprache) {
         $sprachdatei = $sprachPfad.'/'.$sprache.'/'.$tabelle.'.php';
 
@@ -168,7 +190,17 @@ foreach (glob($dcaPfad.'/*.php') as $datei) {
                 continue;
             }
 
-            if (!str_contains($inhalt, "['".$feld."']")) {
+            // Zeigt das Feld auf eine fremde Tabelle, muss der Text dort
+            // stehen — und nicht in der Sprachdatei dieser Tabelle.
+            $wo = $sprachdatei;
+
+            if (isset($verweist[$feld]) && $verweist[$feld] !== $tabelle) {
+                $wo = $sprachPfad.'/'.$sprache.'/'.$verweist[$feld].'.php';
+            }
+
+            $text = $wo === $sprachdatei ? $inhalt : (is_file($wo) ? file_get_contents($wo) : '');
+
+            if (!str_contains($text, "['".$feld."']")) {
                 $fehlt[] = $feld;
             }
         }
@@ -177,6 +209,48 @@ foreach (glob($dcaPfad.'/*.php') as $datei) {
 
         if ($fehlt) {
             printf("%-30s OHNE BESCHRIFTUNG (%s): %s\n", $tabelle, $sprache, implode(', ', $fehlt));
+            ++$probleme;
+        }
+    }
+
+    // --- 4. Legenden brauchen eine Beschriftung in der eigenen Tabelle ---
+    //
+    // Sowohl Contao 4.13 (DC_Table) als auch Contao 5 (PaletteBuilder) lesen
+    // die Überschrift eines Abschnitts als
+    // `$GLOBALS['TL_LANG'][<Tabelle>][<Legende>] ?? <Legende>`. Der Name der
+    // Tabelle ist dabei immer die, in der die Palette steht — ein Eintrag
+    // unter `tl_user` gilt also nicht für `tl_user_group` mit. Fehlt er, zeigt
+    // das Backend wortwörtlich „mailinglisten_legend“; genau das war am
+    // 2026-09-09 zu sehen.
+
+    $legenden = $GLOBALS['__legenden'] ?? [];
+
+    if ($eigeneTabelle) {
+        foreach (($dca['palettes'] ?? []) as $name => $palette) {
+            if ('__selector__' === $name || !\is_string($palette)) {
+                continue;
+            }
+
+            preg_match_all('/\{([a-zA-Z_]+)(?::hide)?\}/', $palette, $m);
+            $legenden = array_merge($legenden, $m[1]);
+        }
+    }
+
+    foreach (['de', 'en'] as $sprache) {
+        $sprachdatei = $sprachPfad.'/'.$sprache.'/'.$tabelle.'.php';
+        $inhalt = is_file($sprachdatei) ? file_get_contents($sprachdatei) : '';
+        $fehlt = [];
+
+        foreach (array_unique($legenden) as $legende) {
+            ++$geprueft;
+
+            if (!str_contains($inhalt, "['".$legende."']")) {
+                $fehlt[] = $legende;
+            }
+        }
+
+        if ($fehlt) {
+            printf("%-30s LEGENDE OHNE BESCHRIFTUNG (%s): %s\n", $tabelle, $sprache, implode(', ', $fehlt));
             ++$probleme;
         }
     }

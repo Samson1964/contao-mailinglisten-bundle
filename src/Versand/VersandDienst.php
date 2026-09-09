@@ -67,7 +67,12 @@ class VersandDienst
      *                                         aus der Datenbank
      * @param LoggerInterface $logger          Nimmt Versandfehler auf; im
      *                                         Container ist das
-     *                                         `monolog.logger.contao.error`
+     *                                         `schachbulle_mailinglisten.logger.fehler`,
+     *                                         also `monolog.logger.contao.error`
+     *                                         umhüllt von Contaos SystemLogger.
+     *                                         Die Hülle sorgt dafür, dass der
+     *                                         Eintrag außer in var/logs auch im
+     *                                         System-Log erscheint.
      */
     public function __construct(
         private readonly MailerInterface $standardMailer,

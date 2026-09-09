@@ -2,6 +2,34 @@
 
 Alle nennenswerten Änderungen an diesem Bundle.
 
+## Version 1.2.1 (2026-09-09)
+
+* Add: Einträge im System-Log von Contao. Jede verteilte Nachricht
+  erscheint dort unter der Aktion „E-Mail", Fehler unter „Fehler", die
+  Zusammenfassung eines Cron-Durchgangs unter „Cron". Bisher gingen alle
+  Meldungen nur nach `var/logs/`: Der `ContaoTableHandler` verwirft jeden
+  Datensatz ohne `ContaoContext`, und der fehlte. Die Dienste hüllen die
+  Monolog-Kanäle jetzt in Contaos `SystemLogger`, der in 4.13 und 5.7
+  zeichengleich ist.
+* Fix: Die Legende „Mailinglisten" bei den Rechten einer **Benutzergruppe**
+  zeigte den nackten Schlüssel `mailinglisten_legend`. Die Beschriftung
+  einer Legende wird immer unter dem Namen der eigenen Tabelle
+  nachgeschlagen; der vorhandene Eintrag unter `tl_user` galt für
+  `tl_user_group` nicht mit.
+* Add: `tools/dienste-pruefen.php` prüft services.yaml gegen den Quelltext
+  — benannte Argumente gegen die Konstruktoren, Verweise auf eigene
+  Dienste, Rückruf-Methoden der `contao.callback`-Tags.
+* Change: `tools/dca-pruefen.php` prüft jetzt auch die Beschriftung jeder
+  Legende und folgt Beschriftungen, die per Referenz aus einer anderen
+  Tabelle stammen.
+* Add: `tools/dmarc-auswerten.php` und `tools/dmarc-fehler.php` werten
+  DMARC-Aggregatberichte aus, wie sie als `.eml` im Postfach liegen — ohne
+  die Anhänge von Hand zu entpacken (gzip wie zip). Das erste Werkzeug
+  zeigt jede Quell-IP mit SPF- und DKIM-Ergebnis, das zweite nur die
+  Nachrichten, die DMARC nicht bestehen. Landen Listennachrichten trotz
+  bestandener Prüfungen im Spam, ist das der Weg zur Absenderreputation;
+  `docs/betrieb.md` beschreibt ihn.
+
 ## Version 1.2.0 (2026-09-09)
 
 * Add: Ein-Klick-Abmeldung nach RFC 8058. Trägt die Liste eine

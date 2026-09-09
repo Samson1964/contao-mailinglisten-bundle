@@ -42,7 +42,10 @@ class MailinglistenCron
      *                                   SMTP-Verbindungen gebraucht
      * @param LoggerInterface $logger    Schreibt die Zusammenfassung; im
      *                                   Container ist das
-     *                                   `monolog.logger.contao.cron`
+     *                                   `schachbulle_mailinglisten.logger.cron`,
+     *                                   also `monolog.logger.contao.cron`
+     *                                   umhüllt von Contaos SystemLogger, damit
+     *                                   die Zeile auch im System-Log steht
      */
     public function __construct(
         private readonly ContaoFramework $framework,
