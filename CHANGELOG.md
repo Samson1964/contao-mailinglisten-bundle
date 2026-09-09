@@ -10,6 +10,12 @@ Alle nennenswerten Änderungen an diesem Bundle.
   „Antworten“ den Verfasser preis. Umschalten per Kennwort im Betreff
   (neues Feld „Kennwort für anonymes Schreiben“) oder als Ankreuzfeld im
   Anmeldeformular; die Betreuung sieht den Zustand in der Teilnehmerliste.
+* Add: Rechte je Benutzer und Benutzergruppe, aufgebaut wie bei den
+  Nachrichtenarchiven des Kerns: Auswahl der erlaubten Listen sowie die
+  Rechte zum Anlegen und Löschen. Wer eine Liste sehen darf, sieht auch
+  deren Teilnehmer und deren Verlauf. Ausgewertet werden die Felder
+  unmittelbar statt über `BackendUser::hasAccess()` — die Methode löst seit
+  Contao 5.2 eine Deprecation aus und entfällt in Contao 6.
 * Add: Mehr Beispieltexte im Hilfe-Assistenten — für den Ablehnungstext und
   die Antragsbestätigung, dazu ein Abschnitt über anonyme Teilnehmer.
 * Fix: `##absendername##` lieferte den Rohwert aus dem `From`-Kopf der

@@ -80,6 +80,12 @@ services:
               table: tl_mailinglisten
               target: config.onload
               method: pruefeVoraussetzungen
+            # Muss vor allem anderen greifen: Der Rückruf beschneidet die
+            # sichtbaren Listen und wirft bei unerlaubten Aktionen ab.
+            - name: contao.callback
+              table: tl_mailinglisten
+              target: config.onload
+              method: pruefeRechte
             - name: contao.callback
               table: tl_mailinglisten
               target: list.label.label

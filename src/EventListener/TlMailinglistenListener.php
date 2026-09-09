@@ -10,8 +10,11 @@ declare(strict_types=1);
 
 namespace Schachbulle\ContaoMailinglistenBundle\EventListener;
 
+use Contao\BackendUser;
+use Contao\CoreBundle\Exception\AccessDeniedException;
 use Contao\Database;
 use Contao\DataContainer;
+use Contao\Input;
 use Contao\Message;
 use Contao\System;
 use Schachbulle\ContaoMailinglistenBundle\Sicherheit\Geheimspeicher;
@@ -71,6 +74,143 @@ class TlMailinglistenListener
         if (!class_exists(\Webklex\PHPIMAP\ClientManager::class)) {
             Message::addError($GLOBALS['TL_LANG']['tl_mailinglisten']['fehltImap'] ?? 'Das Paket "webklex/php-imap" ist nicht installiert. Es werden keine Nachrichten abgeholt.');
         }
+    }
+
+    /**
+     * Beschränkt die Sicht und die Möglichkeiten auf die erlaubten Listen.
+     *
+     * Aufgebaut wie die Rechteprüfung der Nachrichtenarchive im Kern, mit einem
+     * Unterschied: Statt `BackendUser::hasAccess()` werden die Felder
+     * unmittelbar ausgewertet. Die Methode löst seit Contao 5.2 eine
+     * Deprecation aus und entfällt in Contao 6 — ein Bundle, das 4.13 und 5
+     * zugleich bedient, käme damit in beiden Fassungen nur mit Warnungen durch.
+     *
+     * Wer eine Liste sehen darf, sieht auch deren Teilnehmer und deren
+     * Verlauf. Eine feinere Aufteilung wäre bei drei Tabellen, die ohne
+     * einander sinnlos sind, mehr Verwaltung als Nutzen.
+     *
+     * @param DataContainer|null $dc Der Data Container; wird nicht ausgewertet,
+     *                               gehört aber zur Signatur des Rückrufs
+     *
+     * @return void
+     *
+     * @throws AccessDeniedException Wenn der Benutzer eine Handlung versucht,
+     *                               die ihm nicht zusteht
+     */
+    public function pruefeRechte(?DataContainer $dc = null): void
+    {
+        $benutzer = BackendUser::getInstance();
+
+        if ($benutzer->isAdmin) {
+            return;
+        }
+
+        // Ohne zugewiesene Liste bleibt die Übersicht leer. Die 0 ist nötig,
+        // weil ein leeres Feld in Contao als „keine Einschränkung“ gilt und
+        // damit alles zeigen würde.
+        $erlaubt = \is_array($benutzer->mailinglisten) && $benutzer->mailinglisten
+            ? array_map('intval', $benutzer->mailinglisten)
+            : [0];
+
+        $GLOBALS['TL_DCA']['tl_mailinglisten']['list']['sorting']['root'] = $erlaubt;
+
+        if (!$this->darf($benutzer, 'create')) {
+            $GLOBALS['TL_DCA']['tl_mailinglisten']['config']['closed'] = true;
+            $GLOBALS['TL_DCA']['tl_mailinglisten']['config']['notCreatable'] = true;
+            $GLOBALS['TL_DCA']['tl_mailinglisten']['config']['notCopyable'] = true;
+        }
+
+        if (!$this->darf($benutzer, 'delete')) {
+            $GLOBALS['TL_DCA']['tl_mailinglisten']['config']['notDeletable'] = true;
+        }
+
+        $aktion = (string) Input::get('act');
+
+        switch ($aktion) {
+            case '':
+            case 'select':
+                break;
+
+            case 'create':
+                if (!$this->darf($benutzer, 'create')) {
+                    throw new AccessDeniedException('Keine Berechtigung, eine Mailingliste anzulegen.');
+                }
+                break;
+
+            case 'edit':
+            case 'copy':
+            case 'delete':
+            case 'show':
+            case 'toggle':
+                if (!\in_array((int) Input::get('id'), $erlaubt, true)) {
+                    throw new AccessDeniedException(sprintf('Keine Berechtigung für die Mailingliste ID %s.', Input::get('id')));
+                }
+
+                if ('delete' === $aktion && !$this->darf($benutzer, 'delete')) {
+                    throw new AccessDeniedException(sprintf('Keine Berechtigung, die Mailingliste ID %s zu löschen.', Input::get('id')));
+                }
+                break;
+
+            case 'editAll':
+            case 'deleteAll':
+            case 'overrideAll':
+            case 'copyAll':
+                // Bei den Sammelaktionen steht die Auswahl in der Sitzung. Sie
+                // wird auf die erlaubten Listen eingedampft, statt die Aktion
+                // abzuweisen — sonst scheiterte eine Auswahl schon daran, dass
+                // eine einzige fremde Liste darin vorkommt.
+                $this->auswahlBeschraenken($erlaubt, 'deleteAll' === $aktion && !$this->darf($benutzer, 'delete'));
+                break;
+
+            default:
+                throw new AccessDeniedException(sprintf('Keine Berechtigung für die Aktion "%s".', $aktion));
+        }
+    }
+
+    /**
+     * Sagt, ob ein Benutzer ein bestimmtes Recht an den Listen hat.
+     *
+     * Ausgewertet wird das Feld `mailinglistenp`, in dem Contao die
+     * angekreuzten Rechte als Feld ablegt. Ein Administrator hat immer alle.
+     *
+     * @param BackendUser $benutzer Der angemeldete Benutzer
+     * @param string      $recht    'create' oder 'delete'
+     *
+     * @return bool true, wenn das Recht vorliegt
+     */
+    private function darf(BackendUser $benutzer, string $recht): bool
+    {
+        if ($benutzer->isAdmin) {
+            return true;
+        }
+
+        return \is_array($benutzer->mailinglistenp) && \in_array($recht, $benutzer->mailinglistenp, true);
+    }
+
+    /**
+     * Streicht aus einer Sammelauswahl alles, was dem Benutzer nicht zusteht.
+     *
+     * Die Auswahl liegt in der Backend-Sitzung. Der Dienst `session` ist in
+     * Contao 5 entfallen; der Weg über `request_stack` funktioniert in beiden
+     * Fassungen.
+     *
+     * @param array<int, int> $erlaubt Die zugänglichen Listen-IDs
+     * @param bool            $alles   Wenn true, wird die Auswahl vollständig
+     *                                 geleert — etwa beim Sammellöschen ohne
+     *                                 Löschrecht
+     *
+     * @return void
+     */
+    private function auswahlBeschraenken(array $erlaubt, bool $alles): void
+    {
+        $sitzung = System::getContainer()->get('request_stack')->getSession();
+        $daten = $sitzung->all();
+
+        $daten['CURRENT']['IDS'] = $alles
+            ? []
+            : array_intersect(array_map('intval', (array) ($daten['CURRENT']['IDS'] ?? [])), $erlaubt);
+
+        $sitzung->replace($daten);
     }
 
     /**

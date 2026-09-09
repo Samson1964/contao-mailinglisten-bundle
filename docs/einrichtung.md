@@ -113,6 +113,9 @@ In Fußzeile, Ablehnungstext und Bestätigungstext stehen zur Verfügung:
 | `##absendername##` | Angezeigter Name des Absenders |
 | `##betreff##` | Betreff der eingegangenen Nachricht |
 
+Schreibt der Teilnehmer **anonym**, liefern `##absender##` und
+`##absendername##` statt seiner Angaben den Text `[Anonym]`.
+
 Beispiel für eine Fußzeile:
 
 ```
@@ -126,6 +129,7 @@ Zum Austragen eine E-Mail an ##adresse## mit dem Betreff "##abmeldekennung##".
 | --- | --- |
 | **Kennwort für die Aufnahme** | Steht dieses Wort am **Anfang** des Betreffs, gilt die Nachricht eines Fremden als Aufnahmeantrag. Leer lassen schaltet die Funktion ab. |
 | **Kennwort für die Abmeldung** | Ebenso für das Austragen. |
+| **Kennwort für anonymes Schreiben** | Schaltet den Teilnehmer zwischen anonym und Klarnamen um. Leer lassen schaltet die Funktion ab — dann erscheint auch im Anmeldeformular kein Ankreuzfeld dafür. |
 | **Benachrichtigung an** | Diese Adressen erfahren von einem neuen Antrag. Mehrere durch Komma trennen. Ohne Eintrag bleibt ein Antrag unbemerkt im Backend liegen. |
 | **Text der Antragsbestätigung** | Geht an den Antragsteller. Leer lassen benutzt einen Standardtext. |
 | **Absender über die Ablehnung unterrichten** | Bei einer Adresse, die viel Spam bekommt, besser abschalten — siehe [Betrieb](betrieb.md). |
@@ -238,3 +242,44 @@ Die Willkommensnachricht geht heraus, sobald der Status auf **aktiv**
 wechselt — gleich ob über die Einzelbearbeitung oder die Mehrfachbearbeitung.
 Ein erneutes Speichern eines bereits aktiven Teilnehmers löst nichts aus; eine
 Namenskorrektur führt also nicht zu einer zweiten Begrüßung.
+
+## Rechte im Backend
+
+Wie bei den Nachrichtenarchiven des Kerns lässt sich je Benutzer und je
+Benutzergruppe festlegen, wer welche Liste bearbeiten darf. Die Felder stehen
+unter **System → Benutzer** beziehungsweise **Benutzergruppen** im Abschnitt
+*Mailinglisten*.
+
+| Feld | Wirkung |
+| --- | --- |
+| **Erlaubte Mailinglisten** | Nur diese Listen erscheinen im Backend-Modul. Ohne Auswahl bleibt es leer. |
+| **Rechte an Mailinglisten** | *Neue anlegen* und *löschen*. Ohne sie darf der Benutzer die zugewiesenen Listen bearbeiten, aber keine neuen anlegen und keine entfernen. |
+
+Wer eine Liste sehen darf, sieht auch **deren Teilnehmer und deren Verlauf**.
+Eine feinere Aufteilung wäre bei drei Tabellen, die ohne einander sinnlos
+sind, mehr Verwaltung als Nutzen.
+
+Administratoren sind von allen Beschränkungen ausgenommen.
+
+### Was geschieht, wenn Rechte fehlen
+
+* Die Übersicht zeigt ausschließlich die erlaubten Listen.
+* Ohne *Neue anlegen* verschwinden die Schaltflächen zum Anlegen und
+  Duplizieren; ein Aufruf über die Adresszeile wird abgewiesen.
+* Ohne *Löschen* verschwindet die Löschen-Schaltfläche, und ein Sammellöschen
+  greift ins Leere statt fremde Listen zu erwischen.
+* Bei den Sammelaktionen wird die Auswahl auf die erlaubten Listen
+  eingedampft — eine einzige fremde Liste in der Auswahl lässt also nicht die
+  ganze Aktion scheitern.
+
+### Nach dem Update
+
+Die Rechte brauchen vier neue Spalten. Nach `composer update` also:
+
+```bash
+vendor/bin/contao-console contao:migrate
+```
+
+Bestehende Benutzer haben danach **keine** Liste zugewiesen und sehen das
+Modul leer — das ist Absicht. Wer bisher damit gearbeitet hat, bekommt seine
+Listen einmalig zugewiesen; Administratoren merken nichts davon.

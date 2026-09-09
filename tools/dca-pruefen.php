@@ -49,6 +49,21 @@ function dcaLesen(string $datei): array
         eval('namespace Contao; class DataContainer { const MODE_SORTED = 1; const MODE_PARENT = 4; const SORT_ASC = 11; const SORT_DESC = 12; } class DC_Table {}');
     }
 
+    // Der PaletteManipulator erweitert Kernpaletten, die hier gar nicht
+    // vorliegen. Die Attrappe schluckt die Aufrufkette, damit die Datei
+    // durchläuft; geprüft werden ohnehin nur die Felder, die das Bundle selbst
+    // beisteuert.
+    if (!class_exists('Contao\CoreBundle\DataContainer\PaletteManipulator', false)) {
+        eval('namespace Contao\CoreBundle\DataContainer; class PaletteManipulator {
+            const POSITION_BEFORE = "before";
+            const POSITION_AFTER = "after";
+            const POSITION_PREPEND = "prepend";
+            const POSITION_APPEND = "append";
+            public static function create(): self { return new self(); }
+            public function __call($name, $args): self { return $this; }
+        }');
+    }
+
     $GLOBALS['TL_DCA'] = [];
     $GLOBALS['TL_LANG'] = $GLOBALS['TL_LANG'] ?? [];
 
