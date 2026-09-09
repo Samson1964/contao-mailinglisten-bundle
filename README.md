@@ -91,8 +91,9 @@ gefahrlos wiederholen.
   mit den üblichen Zugangsdaten gängiger Anbieter
 * [Wie die Verteilung entscheidet](docs/verteilung.md) — die Reihenfolge der
   Prüfungen, Aufnahme, Abmeldung und Ablehnung
-* [Betrieb und Fehlersuche](docs/betrieb.md) — Verlauf lesen, Spam-Vermeidung,
-  Kennwörter und das Anwendungsgeheimnis
+* [Betrieb und Fehlersuche](docs/betrieb.md) — Verlauf und System-Log lesen,
+  gescheiterter Versand, Spam-Vermeidung, Kennwörter und das
+  Anwendungsgeheimnis
 
 ## Lizenz
 

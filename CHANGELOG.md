@@ -2,6 +2,19 @@
 
 Alle nennenswerten Änderungen an diesem Bundle.
 
+## Version 1.2.3 (2026-09-09)
+
+* Change: `docs/betrieb.md` erklärt den Versandfehler „Connection
+  refused". Viele Anbieter sperren die Ports 25 und 465, damit eine
+  gekaperte Webanwendung keinen Spam versenden kann; der
+  Submission-Port 587 bleibt dabei offen, weil er eine Anmeldung
+  erzwingt. Die Abhilfe ist dann eine Einstellung an der Liste — Port
+  587, Verschlüsselung TLS —, kein Eingriff am Server. Der Abschnitt
+  nennt den Prüfbefehl, die Unterscheidung von einer Anbieterstörung
+  und den Grund, warum ein lokaler Postfix keine Lösung ist: Der
+  Webserver steht meist nicht im SPF der Absenderdomäne und hat keinen
+  DKIM-Schlüssel dafür.
+
 ## Version 1.2.2 (2026-09-09)
 
 * Fix: Statusmeldungen des SMTP-Transports standen als **Fehler** im

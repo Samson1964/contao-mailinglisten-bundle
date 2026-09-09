@@ -79,6 +79,57 @@ Ob überhaupt etwas geschieht, verrät die Übersicht der Mailinglisten: Hinter
 jedem Namen steht, wann zuletzt geprüft wurde. Steht dort „nie", ist entweder
 die Liste nicht aktiv oder der Cron läuft nicht.
 
+## Der Versand scheitert mit „Connection refused"
+
+Steht im Verlauf oder im System-Log eine Zeile wie
+
+```
+Versand an "…" fehlgeschlagen: Connection could not be established with
+host "ssl://sslout.de:465": Connection refused
+```
+
+dann liegt es nicht am Bundle und meist auch nicht am Mailserver, sondern an
+einer **Sperre ausgehender SMTP-Verbindungen auf dem Webserver**. Viele
+Anbieter sperren die Ports **25 und 465**, damit eine gekaperte Webanwendung
+keinen Spam versenden kann. Der Submission-Port **587** bleibt dabei in aller
+Regel offen, weil er eine Anmeldung erzwingt.
+
+Der Nachweis dauert eine Minute. Auf dem Webserver:
+
+```bash
+php -r 'foreach ([["sslout.de",465],["sslout.de",587],["sslout.de",25],["smtp.gmail.com",465],["sslin.de",993]] as [$h,$p]) { $t=microtime(true); $f=@stream_socket_client("tcp://$h:$p",$e,$s,8); printf("%-16s %-5d %-6s %5d ms %s\n",$h,$p,$f?"OFFEN":"ZU",round((microtime(true)-$t)*1000),$f?"":"($e $s)"); if($f) fclose($f); }'
+```
+
+Den eigenen SMTP-Server dabei gegen einen fremden halten — erst das trennt
+eine Portsperre von einer Störung beim Anbieter:
+
+| Ergebnis | Bedeutung |
+| --- | --- |
+| 25 und 465 zu, **bei beiden Zielen**, 587 offen | Portsperre auf dem Webserver |
+| Nur der eigene Server zu, der fremde offen | Störung oder Sperre beim Anbieter |
+| Antwort nach 0–1 ms | lokale Firewallregel mit `REJECT` |
+| Antwort erst nach Sekunden | Sperre weiter außen im Netz |
+
+**Die Abhilfe ist eine Einstellung, kein Eingriff:** In der Liste unter
+*Versand* den Port auf **587** und die Verschlüsselung auf **TLS (STARTTLS)**
+setzen. Bei den meisten Anbietern — Domainfactory eingeschlossen — ist das
+derselbe Server unter einem anderen Port; SPF und DKIM verhalten sich
+unverändert, weil dieselbe Maschine ausliefert.
+
+Ob dort wirklich ein passender Dienst antwortet, zeigt ein EHLO. Gesucht sind
+die Zeilen `STARTTLS` und `AUTH`:
+
+```bash
+php -r '$f=stream_socket_client("tcp://sslout.de:587",$e,$s,10); echo fgets($f); fwrite($f,"EHLO test\r\n"); while(($z=fgets($f))!==false){ echo $z; if(preg_match("/^250 /",$z)) break; } fwrite($f,"QUIT\r\n");'
+```
+
+**Nicht auf einen lokalen Postfix ausweichen.** Der Webserver steht in aller
+Regel nicht im SPF der Absenderdomäne und besitzt keinen DKIM-Schlüssel dafür.
+Direkt versandte Nachrichten scheitern dann an beidem — und bei einer
+DMARC-Richtlinie oberhalb von `p=none` landen sie im Spam-Ordner oder werden
+abgewiesen. Der Weg über den Relay des Domänen-Anbieters ist die einzige
+Konfiguration, die beide Prüfungen besteht.
+
 ## Das Postfach ist nicht erreichbar
 
 ```bash
