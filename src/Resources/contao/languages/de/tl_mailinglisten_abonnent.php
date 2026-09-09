@@ -15,6 +15,7 @@ $GLOBALS['TL_LANG']['tl_mailinglisten_abonnent']['nachname'] = array('Nachname',
 $GLOBALS['TL_LANG']['tl_mailinglisten_abonnent']['status'] = array('Status', 'Nur "aktiv" nimmt am Verkehr teil. "Beantragt" wartet auf die Freigabe, "gesperrt" ist ausgeschlossen und bleibt es auch bei einem erneuten Antrag.');
 $GLOBALS['TL_LANG']['tl_mailinglisten_abonnent']['darfSenden'] = array('Darf an die Liste schreiben', 'Ohne dieses Recht werden Nachrichten dieser Adresse abgewiesen — der Teilnehmer liest also nur mit.');
 $GLOBALS['TL_LANG']['tl_mailinglisten_abonnent']['darfEmpfangen'] = array('Erhält die Nachrichten der Liste', 'Ohne dieses Recht darf der Teilnehmer einreichen, bekommt aber nichts zugestellt.');
+$GLOBALS['TL_LANG']['tl_mailinglisten_abonnent']['anonym'] = array('Schreibt anonym', 'Beiträge dieses Teilnehmers erscheinen ohne Name und Adresse. Antworten gehen dann immer an die Liste, nie an ihn persönlich. Er kann die Einstellung selbst per Kennwort im Betreff umschalten.');
 $GLOBALS['TL_LANG']['tl_mailinglisten_abonnent']['notiz'] = array('Notiz', 'Nur für die eigene Übersicht. Bei einem Antrag per E-Mail trägt das Bundle hier Datum und Betreff ein.');
 
 // Legenden

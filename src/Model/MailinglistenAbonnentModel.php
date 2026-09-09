@@ -30,6 +30,7 @@ use Contao\Model\Collection;
  * @property string $status
  * @property string $darfSenden
  * @property string $darfEmpfangen
+ * @property string $anonym
  * @property int    $beigetreten
  * @property string $notiz
  * @property string $token

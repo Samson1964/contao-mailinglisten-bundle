@@ -51,6 +51,37 @@ Zum Austragen eine E-Mail an ##adresse## mit dem Betreff "##abmeldekennung##".</
 	array('colspan', '<pre style="white-space:pre-wrap">Diese Nachricht ging an alle Teilnehmer von Vorstand.
 Zum Austragen eine E-Mail an vorstand@example.org mit dem Betreff "Abmeldung".</pre>'),
 
+	array('headspan', 'Beispiel für den Text der Ablehnung'),
+
+	array('colspan', 'Er geht an jemanden, der an die Liste geschrieben hat, ohne dazuzugehören:'),
+
+	array('colspan', '<pre style="white-space:pre-wrap">Ihre Nachricht "##betreff##" an ##liste## wurde nicht zugestellt.
+
+Die Adresse ##absender## gehört nicht zu den Teilnehmern dieser Liste.
+Möchten Sie aufgenommen werden? Dann senden Sie eine E-Mail an
+##adresse## mit dem Betreff "##kennung##". Über die Aufnahme
+entscheidet die Betreuung der Liste.</pre>'),
+
+	array('headspan', 'Beispiel für den Text der Antragsbestätigung'),
+
+	array('colspan', 'Er geht an jemanden, der die Aufnahme beantragt hat:'),
+
+	array('colspan', '<pre style="white-space:pre-wrap">Guten Tag ##absendername##,
+
+Ihr Antrag auf Aufnahme in ##liste## ist eingegangen.
+
+Die Adresse ##absender## wurde vorgemerkt. Sobald die Betreuung
+den Antrag freigegeben hat, erhalten Sie eine Nachricht und
+bekommen ab dann alle Beiträge der Liste.</pre>'),
+
+	array('colspan', 'Bleibt eines der beiden Felder leer, verwendet das Bundle einen eigenen Standardtext — es geht also nie eine Nachricht ohne Inhalt hinaus.'),
+
+	array('headspan', 'Anonyme Teilnehmer'),
+
+	array('colspan', 'Schreibt ein Teilnehmer anonym, werden <code>##absender##</code> und <code>##absendername##</code> durch <code>[Anonym]</code> ersetzt — in der Fußzeile ebenso wie im angezeigten Absendernamen. Auch die Antwortadresse zeigt dann auf die Liste statt auf den Verfasser, damit ein Klick auf „Antworten“ ihn nicht preisgibt.'),
+
+	array('colspan', 'Was das Bundle <strong>nicht</strong> entfernen kann, ist der Text der Nachricht selbst: eine Unterschrift, eine Telefonnummer, die Signatur des Mailprogramms. Darauf muss der Teilnehmer selbst achten; die Bestätigung beim Umschalten weist ihn darauf hin.'),
+
 	array('headspan', 'Der Abmeldehinweis'),
 
 	array('colspan', 'Unter jede verteilte Nachricht setzt das Bundle <strong>selbsttätig</strong> eine Zeile, die den Abmeldeweg nennt — auch dann, wenn hier gar nichts eingetragen ist. Das ist beabsichtigt: Die Kopfzeile <code>List-Unsubscribe</code>, die jede Nachricht ebenfalls trägt, zeigt Thunderbird nur unter bestimmten Bedingungen an und die Mailprogramme der Mobiltelefone meist überhaupt nicht. Ohne sichtbaren Hinweis fände sich der Weg nirgends.'),

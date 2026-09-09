@@ -167,6 +167,13 @@ class Verteiler
                 return [$this->abmelden($liste, $eingang, $teilnehmer), $gelesen->plus(new Verteilergebnis(abmeldungen: 1))];
             }
 
+            // 4b. Wechsel zwischen anonym und Klarnamen — wie die Abmeldung
+            //     eine Steuernachricht, die nur für Teilnehmer gilt und nicht
+            //     verteilt wird.
+            if (null !== $teilnehmer && $this->kennung->trifftZu($eingang->betreff, (string) $liste->anonymKennung)) {
+                return [$this->anonymUmschalten($liste, $eingang, $teilnehmer), $gelesen->plus(new Verteilergebnis(ignoriert: 1))];
+            }
+
             // 5. Der Regelfall: ein berechtigter Teilnehmer schreibt an die Liste.
             if (null !== $teilnehmer && $teilnehmer->darfEinreichen()) {
                 $this->verteilen($liste, $eingang, $teilnehmer);
@@ -375,6 +382,56 @@ class Verteiler
             $eingang->absender,
             $eingang->betreff,
             MailinglistenProtokollModel::AKTION_ABMELDUNG,
+            0,
+            $meldung,
+        );
+
+        return $this->nachbehandlungVon($liste);
+    }
+
+    /**
+     * Schaltet einen Teilnehmer zwischen anonym und Klarnamen um.
+     *
+     * Die Umschaltung wirkt sofort und gilt für alle künftigen Beiträge; bereits
+     * verteilte Nachrichten lassen sich naturgemäß nicht mehr ändern. Der
+     * Teilnehmer bekommt eine Bestätigung, die den neuen Zustand ausdrücklich
+     * benennt — wer glaubt, anonym zu schreiben, es aber nicht tut, gibt
+     * womöglich Dinge preis, die er unter seinem Namen nicht gesagt hätte.
+     *
+     * Ein gesperrter Teilnehmer wird nicht umgeschaltet: Er nimmt ohnehin nicht
+     * am Verkehr teil, und jede Antwort an ihn würde nur bestätigen, dass es
+     * seinen Eintrag gibt.
+     *
+     * @param MailinglistenModel         $liste      Die betroffene Liste
+     * @param EingehendeNachricht        $eingang    Die umschaltende Nachricht
+     * @param MailinglistenAbonnentModel $teilnehmer Der umzuschaltende Eintrag
+     *
+     * @return Nachbehandlung Was mit der Nachricht im Postfach geschehen soll
+     */
+    private function anonymUmschalten(MailinglistenModel $liste, EingehendeNachricht $eingang, MailinglistenAbonnentModel $teilnehmer): Nachbehandlung
+    {
+        if (MailinglistenAbonnentModel::STATUS_GESPERRT === $teilnehmer->status) {
+            $meldung = 'Umschaltung einer gesperrten Adresse, Eintrag unverändert gelassen.';
+        } else {
+            $neu = !$teilnehmer->anonym;
+
+            $teilnehmer->anonym = $neu ? '1' : '';
+            $teilnehmer->tstamp = time();
+            $teilnehmer->save();
+
+            $this->versand->versenden($liste, $this->bauer->anonymBestaetigung($liste, $eingang, $neu));
+
+            $meldung = $neu
+                ? 'Teilnehmer schreibt ab jetzt anonym.'
+                : 'Teilnehmer schreibt ab jetzt wieder unter seinem Namen.';
+        }
+
+        MailinglistenProtokollModel::protokollieren(
+            (int) $liste->id,
+            $eingang->messageId,
+            $eingang->absender,
+            $eingang->betreff,
+            MailinglistenProtokollModel::AKTION_IGNORIERT,
             0,
             $meldung,
         );

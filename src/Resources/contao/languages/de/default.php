@@ -28,3 +28,5 @@ $GLOBALS['TL_LANG']['MSC']['mlFeldVorname'] = 'Vorname';
 $GLOBALS['TL_LANG']['MSC']['mlFeldNachname'] = 'Nachname';
 $GLOBALS['TL_LANG']['MSC']['mlAbsenden'] = 'Anmelden';
 $GLOBALS['TL_LANG']['MSC']['mlHonigtopf'] = 'Dieses Feld bitte leer lassen';
+$GLOBALS['TL_LANG']['MSC']['mlFeldAnonym'] = 'Meine Beiträge sollen anonym erscheinen';
+$GLOBALS['TL_LANG']['MSC']['mlAnonymHinweis'] = 'Name und Adresse erscheinen dann nicht in Ihren Beiträgen. Antworten gehen an die Liste, nicht an Sie persönlich. Sie können das später jederzeit per E-Mail ändern.';

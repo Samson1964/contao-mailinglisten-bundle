@@ -95,13 +95,18 @@ class AnmeldungController extends AbstractFrontendModuleController
         $template->listentitel = $liste->titel;
         $template->listenbeschreibung = $liste->beschreibung;
         $template->einwilligungstext = trim((string) $model->mlEinwilligung);
+
+        // Das Ankreuzfeld für anonymes Schreiben erscheint nur, wenn die Liste
+        // die Umschaltung überhaupt anbietet — sonst verspräche das Formular
+        // etwas, das später niemand ändern könnte.
+        $template->anonymMoeglich = '' !== trim((string) $liste->anonymKennung);
         $template->requestToken = $this->tokenManager->getDefaultTokenValue();
         $template->formSubmit = 'mailingliste_anmeldung_'.$model->id;
         $template->honigtopf = 'ml_'.$model->id.'_web';
         $template->formularZeigen = true;
         $template->meldung = '';
         $template->fehler = [];
-        $template->werte = ['email' => '', 'vorname' => '', 'nachname' => ''];
+        $template->werte = ['email' => '', 'vorname' => '', 'nachname' => '', 'anonym' => false];
 
         $merkmal = trim((string) $request->query->get('bestaetigung', ''));
 
@@ -180,8 +185,12 @@ class AnmeldungController extends AbstractFrontendModuleController
         $email = strtolower(trim((string) $request->request->get('email', '')));
         $vorname = strip_tags(trim((string) $request->request->get('vorname', '')));
         $nachname = strip_tags(trim((string) $request->request->get('nachname', '')));
+        // Nur beachten, wenn die Liste anonymes Schreiben überhaupt anbietet —
+        // sonst könnte ein untergeschobenes Feld einen Zustand setzen, den
+        // niemand mehr umschalten kann.
+        $anonym = $template->anonymMoeglich && (bool) $request->request->get('anonym');
 
-        $template->werte = ['email' => $email, 'vorname' => $vorname, 'nachname' => $nachname];
+        $template->werte = ['email' => $email, 'vorname' => $vorname, 'nachname' => $nachname, 'anonym' => $anonym];
 
         // Der Honigtopf ist im Stylesheet versteckt. Ein Mensch sieht ihn
         // nicht und füllt ihn nicht aus; ein Formularroboter trägt in jedes
@@ -209,7 +218,7 @@ class AnmeldungController extends AbstractFrontendModuleController
         }
 
         try {
-            $this->anmeldungVerarbeiten($liste, $email, $vorname, $nachname, $request);
+            $this->anmeldungVerarbeiten($liste, $email, $vorname, $nachname, $anonym, $request);
         } catch (\Throwable $e) {
             $this->logger->error(sprintf('Mailingliste "%s": Anmeldung von "%s" fehlgeschlagen: %s', $liste->titel, $email, $e->getMessage()));
 
@@ -239,7 +248,7 @@ class AnmeldungController extends AbstractFrontendModuleController
      *
      * @return void
      */
-    private function anmeldungVerarbeiten(MailinglistenModel $liste, string $email, string $vorname, string $nachname, Request $request): void
+    private function anmeldungVerarbeiten(MailinglistenModel $liste, string $email, string $vorname, string $nachname, bool $anonym, Request $request): void
     {
         $vorhanden = MailinglistenAbonnentModel::findByListeUndEmail((int) $liste->id, $email);
 
@@ -275,6 +284,14 @@ class AnmeldungController extends AbstractFrontendModuleController
             $eintrag->beigetreten = time();
             $eintrag->notiz = sprintf('Am %s über die Webseite eingetragen.', date('d.m.Y H:i'));
         }
+
+        // Der Wunsch nach Anonymität wird auch bei einem erneuten Anlauf
+        // übernommen — anders als Vor- und Nachname, die einen bestehenden
+        // Eintrag nicht überschreiben dürfen. Der Grund: Wer die Anmeldung
+        // wiederholt und diesmal ankreuzt, will es offensichtlich; und da der
+        // Eintrag noch unbestätigt ist, kann damit niemand fremdbestimmt
+        // werden.
+        $eintrag->anonym = $anonym ? '1' : '';
 
         $eintrag->tstamp = time();
         $eintrag->status = MailinglistenAbonnentModel::STATUS_UNBESTAETIGT;

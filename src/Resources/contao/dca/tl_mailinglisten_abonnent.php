@@ -100,7 +100,7 @@ $GLOBALS['TL_DCA']['tl_mailinglisten_abonnent'] = array
 	'palettes' => array
 	(
 		'default'                     => '{person_legend},email,vorname,nachname;'
-		                               . '{status_legend},status,darfSenden,darfEmpfangen;'
+		                               . '{status_legend},status,darfSenden,darfEmpfangen,anonym;'
 		                               . '{notiz_legend},notiz',
 	),
 
@@ -177,6 +177,14 @@ $GLOBALS['TL_DCA']['tl_mailinglisten_abonnent'] = array
 			'default'                 => '1',
 			'eval'                    => array('tl_class'=>'w50 m12'),
 			'sql'                     => "char(1) NOT NULL default '1'",
+		),
+		'anonym' => array
+		(
+			'exclude'                 => true,
+			'filter'                  => true,
+			'inputType'               => 'checkbox',
+			'eval'                    => array('tl_class'=>'w50 clr m12'),
+			'sql'                     => "char(1) NOT NULL default ''",
 		),
 		'beigetreten' => array
 		(

@@ -15,6 +15,7 @@ $GLOBALS['TL_LANG']['tl_mailinglisten_abonnent']['nachname'] = array('Last name'
 $GLOBALS['TL_LANG']['tl_mailinglisten_abonnent']['status'] = array('Status', 'Only "active" takes part. "Requested" waits for approval, "blocked" stays excluded even after another request.');
 $GLOBALS['TL_LANG']['tl_mailinglisten_abonnent']['darfSenden'] = array('May write to the list', 'Without this right messages from this address are rejected — the member only reads along.');
 $GLOBALS['TL_LANG']['tl_mailinglisten_abonnent']['darfEmpfangen'] = array('Receives the list messages', 'Without this right the member may submit but receives nothing.');
+$GLOBALS['TL_LANG']['tl_mailinglisten_abonnent']['anonym'] = array('Posts anonymously', 'The contributions of this member appear without name and address. Replies then always go to the list, never to them personally. They can toggle the setting themselves with a keyword in the subject.');
 $GLOBALS['TL_LANG']['tl_mailinglisten_abonnent']['notiz'] = array('Note', 'For your own overview. On a request by e-mail the bundle records date and subject here.');
 
 // Legends

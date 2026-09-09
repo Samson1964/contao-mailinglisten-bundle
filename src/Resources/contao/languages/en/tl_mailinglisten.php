@@ -36,6 +36,7 @@ $GLOBALS['TL_LANG']['tl_mailinglisten']['fussnote'] = array('Footer', 'Added bel
 
 $GLOBALS['TL_LANG']['tl_mailinglisten']['aufnahmeKennung'] = array('Subscription keyword', 'If a stranger\'s subject starts with this word, the message counts as a request to join. An empty field disables the feature.');
 $GLOBALS['TL_LANG']['tl_mailinglisten']['abmeldeKennung'] = array('Unsubscribe keyword', 'If the subject starts with this word, the sender removes themselves from the list. An empty field disables the feature.');
+$GLOBALS['TL_LANG']['tl_mailinglisten']['anonymKennung'] = array('Anonymous posting keyword', 'If the subject starts with this word, the member toggles between anonymous and real name. Anonymous contributions appear without name and address; replies then always go to the list, never to the author. An empty field disables the feature.');
 $GLOBALS['TL_LANG']['tl_mailinglisten']['benachrichtigung'] = array('Notify', 'These addresses are told about a new request to join. Separate multiple addresses with commas.');
 $GLOBALS['TL_LANG']['tl_mailinglisten']['ablehnungMelden'] = array('Report rejections to the maintainers', 'The addresses above are told about every rejected message, including sender, subject, reason and the beginning of the text. Better turned off for an address that receives a lot of spam.');
 $GLOBALS['TL_LANG']['tl_mailinglisten']['bestaetigungText'] = array('Request confirmation text', 'Sent to the applicant. Left empty, a default text is used. Placeholders as for the footer.');

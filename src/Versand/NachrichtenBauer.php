@@ -42,6 +42,16 @@ class NachrichtenBauer
     public const KOPF_KENNUNG = 'X-Contao-Mailingliste';
 
     /**
+     * Was anstelle von Name und Adresse erscheint, wenn jemand anonym schreibt.
+     *
+     * Der Wert steht als Konstante, weil er an mehreren Stellen zugleich
+     * greifen muss — im angezeigten Namen, in der Antwortadresse und in jedem
+     * Platzhalter. Bliebe eine davon zurück, wäre die Anonymität dahin, und
+     * zwar ohne dass es jemandem auffiele.
+     */
+    public const ANONYM = '[Anonym]';
+
+    /**
      * Baut die Nachricht, die ein Teilnehmer der Liste bekommt.
      *
      * Der ursprüngliche Verfasser erscheint als angezeigter Name („Max
@@ -71,13 +81,20 @@ class NachrichtenBauer
         // Antwortadresse: Die Voreinstellung „an die Liste" macht aus dem
         // Verteiler ein Gesprächsforum. „An den Absender" eignet sich für
         // reine Rundschreiben, bei denen Rückfragen nicht alle angehen.
-        if ('absender' === $liste->antwortAn) {
+        //
+        // Bei anonymem Schreiben gilt diese Einstellung **nicht**: Eine
+        // Antwortadresse, die auf den Verfasser zeigt, gäbe ihn mit dem ersten
+        // Klick auf „Antworten" preis. Dann führt der Weg zurück über die
+        // Liste, wo der Verfasser wiederum anonym erscheint.
+        $anonym = null !== $absender && $absender->anonym;
+
+        if ('absender' === $liste->antwortAn && !$anonym) {
             $mail->replyTo(new Address($eingang->absender, $anzeigename));
         } else {
             $mail->replyTo(new Address((string) $liste->adresse, (string) $liste->titel));
         }
 
-        $fuss = $this->fusszeile($liste, $eingang);
+        $fuss = $this->fusszeile($liste, $eingang, $absender);
         $text = $eingang->textOderAusHtml();
 
         if ('' !== $fuss) {
@@ -177,6 +194,56 @@ class NachrichtenBauer
         }
 
         return $this->automatischeAntwort($liste, $eingang, sprintf('Aufnahmeantrag für %s', $liste->titel), $vorlage);
+    }
+
+    /**
+     * Baut die Bestätigung eines Wechsels zwischen anonym und Klarnamen.
+     *
+     * Die Bestätigung ist hier wichtiger als bei anderen Umschaltungen: Wer
+     * glaubt, anonym zu schreiben, es aber nicht tut, gibt womöglich Dinge
+     * preis, die er unter seinem Namen nicht gesagt hätte. Die Nachricht sagt
+     * deshalb ausdrücklich, welcher Zustand ab jetzt gilt.
+     *
+     * @param MailinglistenModel  $liste   Die betroffene Liste
+     * @param EingehendeNachricht $eingang Die umschaltende Nachricht
+     * @param bool                $anonym  Der neue Zustand
+     *
+     * @return Email Die versandfertige Bestätigung
+     */
+    public function anonymBestaetigung(MailinglistenModel $liste, EingehendeNachricht $eingang, bool $anonym): Email
+    {
+        if ($anonym) {
+            $text = sprintf(
+                "Ab sofort erscheinen Ihre Beiträge in der Mailingliste \"%s\" **anonym**.\n\n"
+                ."Statt Ihres Namens und Ihrer Adresse steht dort \"%s\". Antworten der "
+                ."übrigen Teilnehmer gehen an die Liste, nicht an Sie persönlich.\n\n"
+                ."Beachten Sie: Was Sie im Text Ihrer Nachricht selbst über sich schreiben "
+                ."— eine Unterschrift, eine Telefonnummer, eine Signatur Ihres Mailprogramms "
+                ."— kann die Liste nicht entfernen. Prüfen Sie Ihre Beiträge darauf.\n\n"
+                ."Zum Zurückschalten senden Sie erneut eine E-Mail an %s mit dem Betreff \"%s\".",
+                $liste->titel,
+                self::ANONYM,
+                $liste->adresse,
+                $liste->anonymKennung,
+            );
+        } else {
+            $text = sprintf(
+                "Ab sofort erscheinen Ihre Beiträge in der Mailingliste \"%s\" wieder unter "
+                ."Ihrem Namen.\n\n"
+                ."Zum anonymen Schreiben senden Sie erneut eine E-Mail an %s mit dem "
+                ."Betreff \"%s\".",
+                $liste->titel,
+                $liste->adresse,
+                $liste->anonymKennung,
+            );
+        }
+
+        return $this->automatischeAntwort(
+            $liste,
+            $eingang,
+            sprintf('%s: %s', $liste->titel, $anonym ? 'Sie schreiben jetzt anonym' : 'Sie schreiben wieder unter Ihrem Namen'),
+            $text,
+        );
     }
 
     /**
@@ -572,6 +639,12 @@ class NachrichtenBauer
      */
     private function anzeigename(EingehendeNachricht $eingang, ?MailinglistenAbonnentModel $absender): string
     {
+        // Wer anonym schreibt, erscheint nirgends mit Namen — auch nicht mit
+        // dem, den sein Mailprogramm mitgeschickt hat.
+        if (null !== $absender && $absender->anonym) {
+            return self::ANONYM;
+        }
+
         if (null !== $absender) {
             $name = trim($absender->vorname.' '.$absender->nachname);
 
@@ -608,14 +681,14 @@ class NachrichtenBauer
      * @return string Die fertige Fußzeile ohne führende Trennzeile, oder ''
      *                wenn weder Fußzeile noch Abmeldekennung gesetzt sind
      */
-    private function fusszeile(MailinglistenModel $liste, EingehendeNachricht $eingang): string
+    private function fusszeile(MailinglistenModel $liste, EingehendeNachricht $eingang, ?MailinglistenAbonnentModel $absender = null): string
     {
         $eigene = trim((string) $liste->fussnote);
         $abmelden = trim((string) $liste->abmeldeKennung);
         $teile = [];
 
         if ('' !== $eigene) {
-            $teile[] = $this->platzhalter($eigene, $liste, $eingang);
+            $teile[] = $this->platzhalter($eigene, $liste, $eingang, $absender);
         }
 
         $selbstErklaert = '' !== $eigene
@@ -673,15 +746,22 @@ class NachrichtenBauer
      *
      * @return string Der Text mit eingesetzten Werten
      */
-    private function platzhalter(string $text, MailinglistenModel $liste, EingehendeNachricht $eingang): string
+    private function platzhalter(string $text, MailinglistenModel $liste, EingehendeNachricht $eingang, ?MailinglistenAbonnentModel $absender = null): string
     {
         return strtr($text, [
             '##liste##' => (string) $liste->titel,
             '##adresse##' => (string) $liste->adresse,
             '##kennung##' => (string) $liste->aufnahmeKennung,
             '##abmeldekennung##' => (string) $liste->abmeldeKennung,
-            '##absender##' => $eingang->absender,
-            '##absendername##' => $eingang->absenderName,
+            // Bei anonymem Schreiben darf auch die Adresse nicht durchsickern.
+            '##absender##' => null !== $absender && $absender->anonym ? self::ANONYM : $eingang->absender,
+            // Denselben Namen wie im From-Kopf, nicht den Rohwert aus der
+            // eingegangenen Nachricht: Sonst stünde im Betreff „Max Mustermann
+            // via …“ und in der Fußzeile daneben etwas anderes — oder nichts,
+            // weil das Mailprogramm des Absenders keinen Namen mitgeschickt
+            // hat. Ist der Teilnehmer nicht bekannt (Ablehnung an einen
+            // Fremden), bleibt es beim Wert aus der Nachricht.
+            '##absendername##' => $this->anzeigename($eingang, $absender),
             '##betreff##' => $eingang->betreff,
         ]);
     }

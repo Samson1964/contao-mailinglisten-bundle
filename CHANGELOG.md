@@ -2,6 +2,21 @@
 
 Alle nennenswerten Änderungen an diesem Bundle.
 
+## Version 1.1.0 (2026-09-09)
+
+* Add: Anonymes Schreiben. Ein Teilnehmer kann seine Beiträge ohne Name und
+  Adresse erscheinen lassen; statt dessen steht dort „[Anonym]“. Die
+  Antwortadresse zeigt dann zwingend auf die Liste, sonst gäbe ein Klick auf
+  „Antworten“ den Verfasser preis. Umschalten per Kennwort im Betreff
+  (neues Feld „Kennwort für anonymes Schreiben“) oder als Ankreuzfeld im
+  Anmeldeformular; die Betreuung sieht den Zustand in der Teilnehmerliste.
+* Add: Mehr Beispieltexte im Hilfe-Assistenten — für den Ablehnungstext und
+  die Antragsbestätigung, dazu ein Abschnitt über anonyme Teilnehmer.
+* Fix: `##absendername##` lieferte den Rohwert aus dem `From`-Kopf der
+  eingegangenen Nachricht statt des gepflegten Namens aus dem
+  Teilnehmerdatensatz. Im Betreff stand damit „Max Mustermann via …“, in der
+  Fußzeile daneben etwas anderes — oder nichts.
+
 ## Version 1.0.2 (2026-09-04)
 
 * Fix: Der Hilfe-Assistent blieb leer. `explanation` stand in `eval`, gelesen

@@ -47,6 +47,7 @@ use Contao\Model\Collection;
  * @property string $fussnote
  * @property string $aufnahmeKennung
  * @property string $abmeldeKennung
+ * @property string $anonymKennung
  * @property string $benachrichtigung
  * @property string $ablehnungSenden
  * @property string $ablehnungText

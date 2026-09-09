@@ -209,6 +209,14 @@ class TlMailinglistenAbonnentListener
             $rechte[] = 'empfängt nicht';
         }
 
+        // Anonymes Schreiben ist keine Einschränkung, sondern eine bewusste
+        // Wahl des Teilnehmers — steht deshalb hier und nicht in der Farbe des
+        // Status. Sichtbar sein muss es trotzdem: Die Betreuung sollte wissen,
+        // dass Beiträge dieser Adresse ohne Namen erscheinen.
+        if ($row['anonym'] ?? false) {
+            $rechte[] = 'schreibt anonym';
+        }
+
         return sprintf(
             '<div class="tl_content_left">%s%s <span style="color:%s">[%s]</span>%s</div>',
             htmlspecialchars((string) $row['email'], ENT_QUOTES, 'UTF-8'),

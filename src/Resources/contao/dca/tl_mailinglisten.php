@@ -122,7 +122,7 @@ $GLOBALS['TL_DCA']['tl_mailinglisten'] = array
 		                               . '{postfach_legend},imapHost,imapPort,imapVerschluesselung,imapBenutzer,imapKennwort,imapOrdner,imapZertifikat,imapNachbehandlung;'
 		                               . '{versand_legend},smtpHost,smtpPort,smtpVerschluesselung,smtpBenutzer,smtpKennwort;'
 		                               . '{verteilung_legend},betreffPraefix,antwortAn,anhaengeUebernehmen,fussnote;'
-		                               . '{aufnahme_legend},aufnahmeKennung,abmeldeKennung,benachrichtigung,ablehnungMelden,bestaetigungText,ablehnungSenden;'
+		                               . '{aufnahme_legend},aufnahmeKennung,abmeldeKennung,anonymKennung,benachrichtigung,ablehnungMelden,bestaetigungText,ablehnungSenden;'
 		                               . '{lauf_legend},pruefintervall,hoechstzahl;'
 		                               . '{published_legend},published',
 	),
@@ -344,6 +344,13 @@ $GLOBALS['TL_DCA']['tl_mailinglisten'] = array
 			'inputType'               => 'text',
 			'default'                 => 'Abmeldung',
 			'eval'                    => array('maxlength'=>64, 'tl_class'=>'w50'),
+			'sql'                     => "varchar(64) NOT NULL default ''",
+		),
+		'anonymKennung' => array
+		(
+			'exclude'                 => true,
+			'inputType'               => 'text',
+			'eval'                    => array('maxlength'=>64, 'tl_class'=>'w50 clr'),
 			'sql'                     => "varchar(64) NOT NULL default ''",
 		),
 		'benachrichtigung' => array

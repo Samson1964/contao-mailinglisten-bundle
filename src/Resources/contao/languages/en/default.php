@@ -27,3 +27,5 @@ $GLOBALS['TL_LANG']['MSC']['mlFeldVorname'] = 'First name';
 $GLOBALS['TL_LANG']['MSC']['mlFeldNachname'] = 'Last name';
 $GLOBALS['TL_LANG']['MSC']['mlAbsenden'] = 'Subscribe';
 $GLOBALS['TL_LANG']['MSC']['mlHonigtopf'] = 'Please leave this field empty';
+$GLOBALS['TL_LANG']['MSC']['mlFeldAnonym'] = 'My contributions should appear anonymously';
+$GLOBALS['TL_LANG']['MSC']['mlAnonymHinweis'] = 'Your name and address will not appear in your contributions. Replies go to the list, not to you personally. You can change this later at any time by e-mail.';
