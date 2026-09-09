@@ -27,6 +27,7 @@ $GLOBALS['TL_LANG']['XPL']['mlPlatzhalter'] = array
 	array('<code>##adresse##</code>', 'The e-mail address of the list. Example: <em>board@example.org</em>'),
 	array('<code>##kennung##</code>', 'The subscription keyword, i.e. the word a subject has to start with for the message to count as a request to join. Example: <em>Subscribe</em>'),
 	array('<code>##abmeldekennung##</code>', 'The unsubscribe keyword. Example: <em>Unsubscribe</em>'),
+	array('<code>##abmeldelink##</code>', 'The personal unsubscribe address of the recipient — one click, no further prompt. It only works in the <strong>footer</strong>, because only there is a single recipient known. It requires the “Base address of the website” above; without it the <strong>entire line</strong> containing the placeholder is dropped. Example: <em>https://www.example.org/mailinglisten/abmelden/9db5ba79291e1a1f1c77eebc7fb1866c</em>'),
 
 	array('headspan', 'Details of the incoming message'),
 
@@ -39,12 +40,16 @@ $GLOBALS['TL_LANG']['XPL']['mlPlatzhalter'] = array
 	array('headspan', 'Example of a footer'),
 
 	array('colspan', '<pre style="white-space:pre-wrap">This message went to all members of ##liste##.
-To unsubscribe, send an e-mail to ##adresse## with the subject "##abmeldekennung##".</pre>'),
+To unsubscribe, send an e-mail to ##adresse## with the subject "##abmeldekennung##".
+Or with one click: ##abmeldelink##</pre>'),
 
 	array('colspan', 'results in, for example:'),
 
 	array('colspan', '<pre style="white-space:pre-wrap">This message went to all members of Board.
-To unsubscribe, send an e-mail to board@example.org with the subject "Unsubscribe".</pre>'),
+To unsubscribe, send an e-mail to board@example.org with the subject "Unsubscribe".
+Or with one click: https://www.example.org/mailinglisten/abmelden/9db5ba79291e1a1f1c77eebc7fb1866c</pre>'),
+
+	array('colspan', 'The third line is worth it because by no means every mail program shows the unsubscribe button the bundle puts into the headers — Thunderbird, for one, does not offer it. A link in the visible text works everywhere. With no base address on record the line disappears by itself, leaving the route via the subject.'),
 
 	array('headspan', 'Example of a rejection text'),
 

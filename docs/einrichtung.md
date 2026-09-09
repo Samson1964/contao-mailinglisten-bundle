@@ -92,9 +92,34 @@ Zustellbarkeit der ganzen Liste weit mehr schadet als eine Zeile unter jeder
 Nachricht.
 
 Doppelt gesagt wird nichts: Verwendet die eigene Fußzeile einen der
-Platzhalter `##abmeldekennung##` oder `##adresse##`, gilt sie als
-selbsterklärend und die Zeile entfällt. Wer den Wortlaut selbst bestimmen
-will, schreibt ihn also einfach in die Fußzeile.
+Platzhalter `##abmeldekennung##`, `##adresse##` oder `##abmeldelink##`, gilt
+sie als selbsterklärend und die Zeile entfällt. Wer den Wortlaut selbst
+bestimmen will, schreibt ihn also einfach in die Fußzeile.
+
+**Mit einem Klick abmelden.** Ist an der Liste die *Basisadresse der Webseite*
+hinterlegt, liefert `##abmeldelink##` die persönliche Abmeldeadresse des
+jeweiligen Empfängers — derselbe Weg, den auch die Kopfzeile
+`List-Unsubscribe` nimmt, nur eben sichtbar:
+
+```
+Diese Nachricht ging an alle Teilnehmer von ##liste##.
+Zum Austragen eine E-Mail an ##adresse## mit dem Betreff "##abmeldekennung##".
+Oder mit einem Klick: ##abmeldelink##
+```
+
+Das lohnt sich, weil längst nicht jedes Mailprogramm den Abmeldeknopf aus den
+Kopfzeilen anbietet — Thunderbird etwa zeigt ihn nicht. Im HTML-Teil der
+Nachricht wird die Adresse zusätzlich zu einem echten Verweis.
+
+Ohne hinterlegte Basisadresse **entfällt die ganze Zeile**, in der der
+Platzhalter steht. Stehen bliebe sonst ein Satz ohne Ziel, und das wäre
+schlimmer als kein Hinweis. Dasselbe gilt für Nachrichten ohne festen
+Empfänger, etwa eine Ablehnung: Dort gibt es niemanden, den man abmelden
+könnte.
+
+Die Adresse ist **persönlich** und meldet ohne Rückfrage ab. Sie gehört
+deshalb nur in die Fußzeile verteilter Nachrichten, wo je Empfänger eine
+eigene entsteht — nicht in Texte, die mehrere Personen zu Gesicht bekommen.
 
 Ohne eingetragene Abmeldekennung entfällt der Hinweis ebenfalls — dann gibt es
 schließlich keinen Weg, den man nennen könnte.
@@ -109,6 +134,7 @@ In Fußzeile, Ablehnungstext und Bestätigungstext stehen zur Verfügung:
 | `##adresse##` | Adresse der Liste |
 | `##kennung##` | Kennwort für die Aufnahme |
 | `##abmeldekennung##` | Kennwort für die Abmeldung |
+| `##abmeldelink##` | Persönliche Abmeldeadresse des Empfängers. **Nur in der Fußzeile**, und nur mit hinterlegter Basisadresse — sonst entfällt die Zeile. |
 | `##absender##` | Adresse des ursprünglichen Absenders |
 | `##absendername##` | Angezeigter Name des Absenders |
 | `##betreff##` | Betreff der eingegangenen Nachricht |
@@ -121,6 +147,7 @@ Beispiel für eine Fußzeile:
 ```
 Diese Nachricht ging an alle Teilnehmer von ##liste##.
 Zum Austragen eine E-Mail an ##adresse## mit dem Betreff "##abmeldekennung##".
+Oder mit einem Klick: ##abmeldelink##
 ```
 
 ## Aufnahme, Abmeldung und Ablehnung

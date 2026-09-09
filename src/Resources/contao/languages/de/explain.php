@@ -32,6 +32,7 @@ $GLOBALS['TL_LANG']['XPL']['mlPlatzhalter'] = array
 	array('<code>##adresse##</code>', 'Die E-Mail-Adresse der Liste. Beispiel: <em>vorstand@example.org</em>'),
 	array('<code>##kennung##</code>', 'Das Kennwort für die Aufnahme, also das Wort, mit dem ein Betreff beginnen muss, damit die Nachricht als Aufnahmeantrag gilt. Beispiel: <em>Anmeldung</em>'),
 	array('<code>##abmeldekennung##</code>', 'Das Kennwort für die Abmeldung. Beispiel: <em>Abmeldung</em>'),
+	array('<code>##abmeldelink##</code>', 'Die persönliche Abmeldeadresse des Empfängers — ein Klick genügt, ohne Rückfrage. Sie wirkt nur in der <strong>Fußzeile</strong>, weil nur dort ein einzelner Empfänger feststeht. Voraussetzung ist die „Basisadresse der Webseite“ weiter oben; fehlt sie, <strong>entfällt die ganze Zeile</strong>, in der der Platzhalter steht. Beispiel: <em>https://www.example.org/mailinglisten/abmelden/9db5ba79291e1a1f1c77eebc7fb1866c</em>'),
 
 	array('headspan', 'Angaben aus der eingegangenen Nachricht'),
 
@@ -44,12 +45,16 @@ $GLOBALS['TL_LANG']['XPL']['mlPlatzhalter'] = array
 	array('headspan', 'Beispiel für eine Fußzeile'),
 
 	array('colspan', '<pre style="white-space:pre-wrap">Diese Nachricht ging an alle Teilnehmer von ##liste##.
-Zum Austragen eine E-Mail an ##adresse## mit dem Betreff "##abmeldekennung##".</pre>'),
+Zum Austragen eine E-Mail an ##adresse## mit dem Betreff "##abmeldekennung##".
+Oder mit einem Klick: ##abmeldelink##</pre>'),
 
 	array('colspan', 'ergibt zum Beispiel:'),
 
 	array('colspan', '<pre style="white-space:pre-wrap">Diese Nachricht ging an alle Teilnehmer von Vorstand.
-Zum Austragen eine E-Mail an vorstand@example.org mit dem Betreff "Abmeldung".</pre>'),
+Zum Austragen eine E-Mail an vorstand@example.org mit dem Betreff "Abmeldung".
+Oder mit einem Klick: https://www.example.org/mailinglisten/abmelden/9db5ba79291e1a1f1c77eebc7fb1866c</pre>'),
+
+	array('colspan', 'Die dritte Zeile lohnt sich, weil längst nicht jedes Mailprogramm den Abmeldeknopf anzeigt, den das Bundle in die Kopfzeilen setzt: Thunderbird etwa bietet ihn nicht an. Ein Verweis im sichtbaren Text wirkt überall. Ist keine Basisadresse hinterlegt, verschwindet die Zeile von selbst — es bleibt dann beim Weg über den Betreff.'),
 
 	array('headspan', 'Beispiel für den Text der Ablehnung'),
 

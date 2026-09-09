@@ -94,7 +94,7 @@ class NachrichtenBauer
             $mail->replyTo(new Address((string) $liste->adresse, (string) $liste->titel));
         }
 
-        $fuss = $this->fusszeile($liste, $eingang, $absender);
+        $fuss = $this->fusszeile($liste, $eingang, $absender, $empfaenger);
         $text = $eingang->textOderAusHtml();
 
         if ('' !== $fuss) {
@@ -107,9 +107,19 @@ class NachrichtenBauer
             $html = $eingang->html;
 
             if ('' !== $fuss) {
-                $html .= '<hr><p style="font-size:0.9em;color:#666">'
-                    .nl2br(htmlspecialchars($fuss, ENT_QUOTES, 'UTF-8'))
-                    .'</p>';
+                $fussHtml = nl2br(htmlspecialchars($fuss, ENT_QUOTES, 'UTF-8'));
+
+                // Im Textteil genügt die nackte Adresse — jedes Mailprogramm
+                // macht daraus einen Verweis. Im HTML-Teil bliebe sie toter
+                // Text, und gerade dort erwartet der Leser einen Klick.
+                $adresse = $this->abmeldeadresse($liste, $empfaenger);
+
+                if ('' !== $adresse) {
+                    $sicher = htmlspecialchars($adresse, ENT_QUOTES, 'UTF-8');
+                    $fussHtml = str_replace($sicher, sprintf('<a href="%s">%s</a>', $sicher, $sicher), $fussHtml);
+                }
+
+                $html .= '<hr><p style="font-size:0.9em;color:#666">'.$fussHtml.'</p>';
             }
 
             $mail->html($html);
@@ -140,10 +150,10 @@ class NachrichtenBauer
         // Betreff. Sie setzt eine Basisadresse voraus: Der Cronjob läuft ohne
         // Seitenaufruf und kann die Adresse der Webseite nicht selbst
         // ermitteln.
-        $basis = rtrim(trim((string) $liste->basisUrl), '/');
+        $basis = $this->abmeldeadresse($liste, $empfaenger);
 
         if ('' !== $basis) {
-            $wege[] = sprintf('<%s/mailinglisten/abmelden/%s>', $basis, $empfaenger->abmeldemerkmal());
+            $wege[] = sprintf('<%s>', $basis);
         }
 
         if ('' !== $abmelden) {
@@ -703,18 +713,54 @@ class NachrichtenBauer
      * @return string Die fertige Fußzeile ohne führende Trennzeile, oder ''
      *                wenn weder Fußzeile noch Abmeldekennung gesetzt sind
      */
-    private function fusszeile(MailinglistenModel $liste, EingehendeNachricht $eingang, ?MailinglistenAbonnentModel $absender = null): string
+    /**
+     * Baut die persönliche Abmeldeadresse eines Teilnehmers.
+     *
+     * Die Adresse trägt das dauerhafte Merkmal genau dieses Teilnehmers und
+     * darf deshalb niemals in einer Nachricht an jemand anderen auftauchen —
+     * sie meldet ab, wer den Verweis aufruft, ohne weitere Rückfrage.
+     *
+     * Kopfzeile und Fußzeile holen sie beide hier ab. Stünde die Bildung an
+     * zwei Stellen, liefen sie beim ersten Umbau der Route auseinander, und
+     * einer der beiden Wege ginge still ins Leere.
+     *
+     * @param MailinglistenModel              $liste      Liefert die Basisadresse
+     * @param MailinglistenAbonnentModel|null $empfaenger Der Teilnehmer; null
+     *                                                    bei Nachrichten ohne
+     *                                                    festen Empfänger, etwa
+     *                                                    einer Ablehnung
+     *
+     * @return string Die vollständige Adresse, oder '' wenn keine Basisadresse
+     *                hinterlegt ist oder kein Teilnehmer feststeht. Der
+     *                Aufrufer muss den leeren Fall behandeln.
+     */
+    private function abmeldeadresse(MailinglistenModel $liste, ?MailinglistenAbonnentModel $empfaenger): string
+    {
+        $basis = rtrim(trim((string) $liste->basisUrl), '/');
+
+        if ('' === $basis || null === $empfaenger) {
+            return '';
+        }
+
+        return sprintf('%s/mailinglisten/abmelden/%s', $basis, $empfaenger->abmeldemerkmal());
+    }
+
+    private function fusszeile(MailinglistenModel $liste, EingehendeNachricht $eingang, ?MailinglistenAbonnentModel $absender = null, ?MailinglistenAbonnentModel $empfaenger = null): string
     {
         $eigene = trim((string) $liste->fussnote);
         $abmelden = trim((string) $liste->abmeldeKennung);
         $teile = [];
 
         if ('' !== $eigene) {
-            $teile[] = $this->platzhalter($eigene, $liste, $eingang, $absender);
+            $teile[] = $this->platzhalter($eigene, $liste, $eingang, $absender, $empfaenger);
         }
 
         $selbstErklaert = '' !== $eigene
-            && (str_contains($eigene, '##abmeldekennung##') || str_contains($eigene, '##adresse##'));
+            && (
+                str_contains($eigene, '##abmeldekennung##')
+                || str_contains($eigene, '##adresse##')
+                || str_contains($eigene, '##abmeldelink##')
+            );
 
         if ('' !== $abmelden && !$selbstErklaert) {
             $teile[] = sprintf(
@@ -768,9 +814,25 @@ class NachrichtenBauer
      *
      * @return string Der Text mit eingesetzten Werten
      */
-    private function platzhalter(string $text, MailinglistenModel $liste, EingehendeNachricht $eingang, ?MailinglistenAbonnentModel $absender = null): string
+    private function platzhalter(string $text, MailinglistenModel $liste, EingehendeNachricht $eingang, ?MailinglistenAbonnentModel $absender = null, ?MailinglistenAbonnentModel $empfaenger = null): string
     {
+        $abmeldelink = $this->abmeldeadresse($liste, $empfaenger);
+
+        // Ohne Adresse bliebe eine Zeile wie „Oder hier abmelden:" ohne Ziel
+        // stehen — schlimmer als gar kein Hinweis. Die ganze Zeile fällt
+        // deshalb weg. Das gilt nur für diesen einen Platzhalter: Er ist der
+        // einzige, dessen Wert von einer Einstellung abhängt, die viele
+        // Betreiber gar nicht gesetzt haben.
+        if ('' === $abmeldelink) {
+            $zeilen = preg_split('/\R/', $text) ?: [];
+            $text = implode("\n", array_filter(
+                $zeilen,
+                static fn (string $zeile): bool => !str_contains($zeile, '##abmeldelink##'),
+            ));
+        }
+
         return strtr($text, [
+            '##abmeldelink##' => $abmeldelink,
             '##liste##' => (string) $liste->titel,
             '##adresse##' => (string) $liste->adresse,
             '##kennung##' => (string) $liste->aufnahmeKennung,

@@ -2,6 +2,28 @@
 
 Alle nennenswerten Änderungen an diesem Bundle.
 
+## Version 1.3.0 (2026-09-09)
+
+* Add: Platzhalter `##abmeldelink##` für die Fußzeile. Er liefert die
+  persönliche Abmeldeadresse des jeweiligen Empfängers — dieselbe, die
+  auch in der Kopfzeile `List-Unsubscribe` steht, nur eben sichtbar. Das
+  hilft überall dort, wo das Mailprogramm den Abmeldeknopf aus den
+  Kopfzeilen nicht anbietet; Thunderbird etwa zeigt ihn nicht. Im
+  HTML-Teil wird die Adresse zusätzlich zu einem echten Verweis.
+* Add: Ist keine Basisadresse hinterlegt oder steht kein einzelner
+  Empfänger fest, **entfällt die ganze Zeile**, in der der Platzhalter
+  steht. Ein Satz ohne Ziel wäre schlimmer als kein Hinweis. Das gilt nur
+  für diesen einen Platzhalter; alle übrigen verhalten sich unverändert.
+* Change: Kopfzeile und Fußzeile bilden die Abmeldeadresse jetzt an
+  **einer** Stelle. Stünde die Bildung an zweien, liefen sie beim
+  nächsten Umbau der Route auseinander und einer der Wege ginge still
+  ins Leere.
+* Change: Der Hilfe-Assistent an der Fußzeile führt den neuen Platzhalter
+  samt Beispiel; `docs/einrichtung.md` erklärt, warum die Adresse
+  persönlich ist und nur in die Fußzeile gehört.
+* Add: `tools/abmeldelink-pruefen.php` sichert das Verhalten ab — mit
+  und ohne Basisadresse, mit und ohne Empfänger, Schrägstrich am Ende.
+
 ## Version 1.2.4 (2026-09-09)
 
 * Change: Die Beschriftung des Prüfintervalls sagt jetzt, was sie tut.
