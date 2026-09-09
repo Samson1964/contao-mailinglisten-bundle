@@ -1,0 +1,20 @@
+# Route für die Ein-Klick-Abmeldung aus dem Mailprogramm (RFC 8058).
+#
+# `_token_check: false` ist hier keine Nachlässigkeit, sondern Voraussetzung:
+# Contaos RequestTokenListener weist jeden POST ohne gültiges REQUEST_TOKEN mit
+# 403 ab, und ein Mailprogramm kennt dieses Merkmal nicht. Den Schutz vor
+# fremden Aufrufen übernimmt statt dessen das Merkmal in der Adresse selbst —
+# 32 zufällige Zeichen je Teilnehmer.
+#
+# `_scope: frontend` sorgt dafür, dass Contao die Anfrage nicht dem Backend
+# zurechnet und nach einer Anmeldung verlangt.
+
+contao_mailinglisten_abmelden:
+    path: /mailinglisten/abmelden/{token}
+    controller: Schachbulle\ContaoMailinglistenBundle\Controller\AbmeldenController
+    methods: [GET, POST]
+    requirements:
+        token: '[a-f0-9]{32}'
+    defaults:
+        _scope: frontend
+        _token_check: false

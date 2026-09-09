@@ -148,3 +148,15 @@ services:
               table: tl_module
               target: fields.mlListe.options
               method: listenOptionen
+
+    # --- Ein-Klick-Abmeldung -----------------------------------------------
+
+    # Der Controller erbt nicht von AbstractController und braucht deshalb
+    # zwingend den Tag `controller.service_arguments`: Ohne ihn bleibt der
+    # Dienst privat, Symfony fällt auf `new AbmeldenController()` zurück und
+    # bricht mit einem ArgumentCountError ab.
+    Schachbulle\ContaoMailinglistenBundle\Controller\AbmeldenController:
+        arguments:
+            $logger: '@monolog.logger.contao.error'
+        tags:
+            - { name: controller.service_arguments }

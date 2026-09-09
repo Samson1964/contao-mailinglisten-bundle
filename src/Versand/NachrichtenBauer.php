@@ -132,12 +132,34 @@ class NachrichtenBauer
         // eine Ein-Klick-Abmeldung (List-Unsubscribe-Post) bliebe wirkungslos,
         // weil sie einen HTTP-Endpunkt verlangt, den dieses Bundle nicht hat.
         $abmelden = trim((string) $liste->abmeldeKennung);
+        $wege = [];
+
+        // Die Ein-Klick-Abmeldung nach RFC 8058 steht zuerst — Mailprogramme
+        // nehmen den ersten Weg, mit dem sie umgehen können, und ein Knopf ist
+        // für den Empfänger bequemer als eine Nachricht mit vorgegebenem
+        // Betreff. Sie setzt eine Basisadresse voraus: Der Cronjob läuft ohne
+        // Seitenaufruf und kann die Adresse der Webseite nicht selbst
+        // ermitteln.
+        $basis = rtrim(trim((string) $liste->basisUrl), '/');
+
+        if ('' !== $basis) {
+            $wege[] = sprintf('<%s/mailinglisten/abmelden/%s>', $basis, $empfaenger->abmeldemerkmal());
+        }
 
         if ('' !== $abmelden) {
-            $mail->getHeaders()->addTextHeader(
-                'List-Unsubscribe',
-                sprintf('<mailto:%s?subject=%s>', $liste->adresse, rawurlencode($abmelden)),
-            );
+            $wege[] = sprintf('<mailto:%s?subject=%s>', $liste->adresse, rawurlencode($abmelden));
+        }
+
+        if ($wege) {
+            $mail->getHeaders()->addTextHeader('List-Unsubscribe', implode(', ', $wege));
+        }
+
+        // Diese Kopfzeile ist es, die aus dem Verweis einen Knopf macht. Ohne
+        // sie zeigen die meisten Mailprogramme gar nichts an — und ohne eine
+        // Adresse mit https wäre sie sinnlos, weil ein mailto keinen POST
+        // entgegennehmen kann.
+        if ('' !== $basis) {
+            $mail->getHeaders()->addTextHeader('List-Unsubscribe-Post', 'List-Unsubscribe=One-Click');
         }
 
         return $mail;

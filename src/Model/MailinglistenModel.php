@@ -44,9 +44,11 @@ use Contao\Model\Collection;
  * @property string $betreffPraefix
  * @property string $antwortAn
  * @property string $anhaengeUebernehmen
+ * @property string $basisUrl
  * @property string $fussnote
  * @property string $aufnahmeKennung
  * @property string $abmeldeKennung
+ * @property string $anonymErlaubt
  * @property string $anonymKennung
  * @property string $benachrichtigung
  * @property string $ablehnungSenden
@@ -90,6 +92,26 @@ class MailinglistenModel extends Model
         $opt['order'] ??= 'titel';
 
         return static::findBy(['published=?'], ['1'], $opt);
+    }
+
+    /**
+     * Sagt, ob diese Liste anonymes Schreiben anbietet.
+     *
+     * Beides muss zutreffen: Die Betreuung hat es erlaubt, und es gibt ein
+     * Kennwort, mit dem sich umschalten lässt. Ohne Kennwort wäre der Zustand
+     * für den Teilnehmer eine Einbahnstraße.
+     *
+     * **Wichtig:** Wird die Erlaubnis später wieder entzogen, bleiben bereits
+     * anonyme Teilnehmer anonym. Sie plötzlich mit Namen erscheinen zu lassen,
+     * wäre ein Vertrauensbruch gegenüber Leuten, die sich bewusst für
+     * Anonymität entschieden haben — es entfallen nur die Umschaltung und das
+     * Ankreuzfeld im Anmeldeformular.
+     *
+     * @return bool true, wenn Teilnehmer anonym schreiben und umschalten können
+     */
+    public function anonymMoeglich(): bool
+    {
+        return (bool) $this->anonymErlaubt && '' !== trim((string) $this->anonymKennung);
     }
 
     /**

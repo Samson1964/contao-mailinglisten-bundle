@@ -99,7 +99,7 @@ class AnmeldungController extends AbstractFrontendModuleController
         // Das Ankreuzfeld für anonymes Schreiben erscheint nur, wenn die Liste
         // die Umschaltung überhaupt anbietet — sonst verspräche das Formular
         // etwas, das später niemand ändern könnte.
-        $template->anonymMoeglich = '' !== trim((string) $liste->anonymKennung);
+        $template->anonymMoeglich = $liste->anonymMoeglich();
         $template->requestToken = $this->tokenManager->getDefaultTokenValue();
         $template->formSubmit = 'mailingliste_anmeldung_'.$model->id;
         $template->honigtopf = 'ml_'.$model->id.'_web';

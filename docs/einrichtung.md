@@ -283,3 +283,58 @@ vendor/bin/contao-console contao:migrate
 Bestehende Benutzer haben danach **keine** Liste zugewiesen und sehen das
 Modul leer — das ist Absicht. Wer bisher damit gearbeitet hat, bekommt seine
 Listen einmalig zugewiesen; Administratoren merken nichts davon.
+
+## Der Abmeldeknopf im Mailprogramm
+
+Trägt die Liste eine **Basisadresse der Webseite**, bekommt jede verteilte
+Nachricht zusätzlich zum sichtbaren Hinweis einen Abmeldeknopf, den moderne
+Mailprogramme oben in der Nachricht anzeigen — Gmail, Outlook und Apple Mail
+tun das, Thunderbird ebenfalls.
+
+Dahinter steht RFC 8058:
+
+```
+List-Unsubscribe: <https://www.example.org/mailinglisten/abmelden/TOKEN>, <mailto:…>
+List-Unsubscribe-Post: List-Unsubscribe=One-Click
+```
+
+### Warum eine Basisadresse nötig ist
+
+Der Cronjob verteilt ohne Seitenaufruf. Er kann die Adresse der Webseite
+deshalb nicht aus einer laufenden Anfrage ableiten und auch nicht raten — bei
+mehreren Startseiten wäre jede Wahl falsch. Bleibt das Feld leer, entfällt der
+Knopf; Abmeldung per Betreff und der sichtbare Hinweis in der Fußzeile bleiben
+davon unberührt.
+
+Einzutragen ist nur der Anfang, also `https://www.example.org` — den Rest des
+Weges hängt das Bundle selbst an.
+
+### Warum GET und POST sich unterscheiden
+
+Ein Klick auf den Knopf schickt einen **POST**, und der meldet sofort ab, ohne
+Rückfrage. So verlangt es RFC 8058, und nur so zeigen die Mailprogramme den
+Knopf überhaupt an.
+
+Wer die Adresse dagegen im Browser öffnet (**GET**), bekommt erst eine Seite
+mit einer Schaltfläche. Das ist kein Umstand, sondern Notwendigkeit: Die
+Sicherheitsprüfungen mancher Mailanbieter rufen jede Adresse in einer Nachricht
+vorab auf. Würde schon ein GET abmelden, flögen Teilnehmer reihenweise aus der
+Liste, ohne je geklickt zu haben.
+
+### Was den Zugriff schützt
+
+Die Adresse enthält ein Merkmal aus 32 Zufallszeichen, das je Teilnehmer einmal
+vergeben und dauerhaft behalten wird — der Knopf steht schließlich auch in
+Nachrichten, die seit Monaten im Postfach liegen. Bestandsteilnehmer bekommen
+ihr Merkmal beim nächsten Versand an sie.
+
+Eine **gesperrte** Adresse wird über den Knopf nicht entfernt; die Sperre
+bliebe sonst leicht abzustreifen. Der Aufrufer sieht trotzdem die übliche
+Bestätigung.
+
+### Route
+
+Die Route heißt `/mailinglisten/abmelden/{token}` und trägt
+`_token_check: false`. Das ist Voraussetzung und keine Nachlässigkeit: Contao
+weist jeden POST ohne gültiges Anfrage-Merkmal ab, und ein Mailprogramm kennt
+dieses Merkmal nicht. Den Schutz übernimmt das Merkmal in der Adresse.

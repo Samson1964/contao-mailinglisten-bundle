@@ -117,12 +117,12 @@ $GLOBALS['TL_DCA']['tl_mailinglisten'] = array
 	// Palettes
 	'palettes' => array
 	(
-		'__selector__'                => array('imapNachbehandlung', 'ablehnungSenden'),
+		'__selector__'                => array('imapNachbehandlung', 'ablehnungSenden', 'anonymErlaubt'),
 		'default'                     => '{titel_legend},titel,adresse,beschreibung;'
 		                               . '{postfach_legend},imapHost,imapPort,imapVerschluesselung,imapBenutzer,imapKennwort,imapOrdner,imapZertifikat,imapNachbehandlung;'
 		                               . '{versand_legend},smtpHost,smtpPort,smtpVerschluesselung,smtpBenutzer,smtpKennwort;'
-		                               . '{verteilung_legend},betreffPraefix,antwortAn,anhaengeUebernehmen,fussnote;'
-		                               . '{aufnahme_legend},aufnahmeKennung,abmeldeKennung,anonymKennung,benachrichtigung,ablehnungMelden,bestaetigungText,ablehnungSenden;'
+		                               . '{verteilung_legend},betreffPraefix,antwortAn,anhaengeUebernehmen,basisUrl,fussnote;'
+		                               . '{aufnahme_legend},aufnahmeKennung,abmeldeKennung,anonymErlaubt,benachrichtigung,ablehnungMelden,bestaetigungText,ablehnungSenden;'
 		                               . '{lauf_legend},pruefintervall,hoechstzahl;'
 		                               . '{published_legend},published',
 	),
@@ -132,6 +132,7 @@ $GLOBALS['TL_DCA']['tl_mailinglisten'] = array
 	(
 		'imapNachbehandlung_verschieben' => 'imapOrdnerErledigt',
 		'ablehnungSenden'                => 'ablehnungText',
+		'anonymErlaubt'                  => 'anonymKennung',
 	),
 
 	// Fields
@@ -319,6 +320,13 @@ $GLOBALS['TL_DCA']['tl_mailinglisten'] = array
 			'eval'                    => array('tl_class'=>'w50 m12'),
 			'sql'                     => "char(1) NOT NULL default '1'",
 		),
+		'basisUrl' => array
+		(
+			'exclude'                 => true,
+			'inputType'               => 'text',
+			'eval'                    => array('rgxp'=>'url', 'maxlength'=>255, 'tl_class'=>'clr long'),
+			'sql'                     => "varchar(255) NOT NULL default ''",
+		),
 		'fussnote' => array
 		(
 			'exclude'                 => true,
@@ -346,11 +354,19 @@ $GLOBALS['TL_DCA']['tl_mailinglisten'] = array
 			'eval'                    => array('maxlength'=>64, 'tl_class'=>'w50'),
 			'sql'                     => "varchar(64) NOT NULL default ''",
 		),
+		'anonymErlaubt' => array
+		(
+			'exclude'                 => true,
+			'inputType'               => 'checkbox',
+			'eval'                    => array('submitOnChange'=>true, 'tl_class'=>'clr'),
+			'sql'                     => "char(1) NOT NULL default ''",
+		),
 		'anonymKennung' => array
 		(
 			'exclude'                 => true,
 			'inputType'               => 'text',
-			'eval'                    => array('maxlength'=>64, 'tl_class'=>'w50 clr'),
+			'default'                 => 'Anonym',
+			'eval'                    => array('mandatory'=>true, 'maxlength'=>64, 'tl_class'=>'w50'),
 			'sql'                     => "varchar(64) NOT NULL default ''",
 		),
 		'benachrichtigung' => array

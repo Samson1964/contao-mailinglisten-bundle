@@ -2,6 +2,21 @@
 
 Alle nennenswerten Änderungen an diesem Bundle.
 
+## Version 1.2.0 (2026-09-09)
+
+* Add: Ein-Klick-Abmeldung nach RFC 8058. Trägt die Liste eine
+  Basisadresse, zeigen Mailprogramme einen Abmeldeknopf an; ein Klick
+  meldet ohne Rückfrage ab. Eigene Route mit `_token_check: false` — ein
+  Frontend-Modul taugt dafür nicht, weil Contao jeden POST ohne
+  Anfrage-Merkmal abweist und ein Mailprogramm dieses nicht kennt. Ein
+  Aufruf per GET zeigt statt dessen eine Seite mit Schaltfläche, damit
+  Sicherheitsprüfungen der Mailanbieter niemanden ungewollt austragen.
+* Add: Schalter „Anonymes Schreiben erlauben“ an der Liste. Das Kennwort
+  dafür steht jetzt in einer Subpalette und erscheint erst, wenn der
+  Schalter gesetzt ist. Wird die Erlaubnis entzogen, bleiben bereits
+  anonyme Teilnehmer anonym — es entfallen nur Umschaltung und
+  Ankreuzfeld im Anmeldeformular.
+
 ## Version 1.1.0 (2026-09-09)
 
 * Add: Anonymes Schreiben. Ein Teilnehmer kann seine Beiträge ohne Name und

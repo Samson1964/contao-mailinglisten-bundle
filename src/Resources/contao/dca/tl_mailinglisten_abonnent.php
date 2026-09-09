@@ -201,6 +201,15 @@ $GLOBALS['TL_DCA']['tl_mailinglisten_abonnent'] = array
 		(
 			'sql'                     => "int(10) unsigned NOT NULL default 0",
 		),
+		// Dauerhaftes Merkmal für die Ein-Klick-Abmeldung aus dem Mailprogramm.
+		// Bewusst getrennt vom `token` oben: Jenes läuft nach zwei Tagen ab und
+		// wird beim Einlösen gelöscht, dieses muss über die gesamte
+		// Mitgliedschaft gültig bleiben — der Abmeldeknopf steht schließlich in
+		// jeder verteilten Nachricht.
+		'abmeldeToken' => array
+		(
+			'sql'                     => "varchar(64) NOT NULL default ''",
+		),
 		'notiz' => array
 		(
 			'exclude'                 => true,

@@ -170,7 +170,7 @@ class Verteiler
             // 4b. Wechsel zwischen anonym und Klarnamen — wie die Abmeldung
             //     eine Steuernachricht, die nur für Teilnehmer gilt und nicht
             //     verteilt wird.
-            if (null !== $teilnehmer && $this->kennung->trifftZu($eingang->betreff, (string) $liste->anonymKennung)) {
+            if (null !== $teilnehmer && $liste->anonymMoeglich() && $this->kennung->trifftZu($eingang->betreff, (string) $liste->anonymKennung)) {
                 return [$this->anonymUmschalten($liste, $eingang, $teilnehmer), $gelesen->plus(new Verteilergebnis(ignoriert: 1))];
             }
 

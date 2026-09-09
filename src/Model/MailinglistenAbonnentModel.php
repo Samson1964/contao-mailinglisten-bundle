@@ -35,6 +35,7 @@ use Contao\Model\Collection;
  * @property string $notiz
  * @property string $token
  * @property int    $tokenErzeugt
+ * @property string $abmeldeToken
  *
  * @method static MailinglistenAbonnentModel|null findByPk($id, array $opt = array())
  * @method static MailinglistenAbonnentModel|null findOneBy($col, $val, array $opt = array())
@@ -162,6 +163,53 @@ class MailinglistenAbonnentModel extends Model
             ['token=?', 'status=?', 'tokenErzeugt>?'],
             [$merkmal, self::STATUS_UNBESTAETIGT, time() - $gueltig],
         );
+    }
+
+    /**
+     * Sucht einen Teilnehmer anhand seines dauerhaften Abmeldemerkmals.
+     *
+     * Anders als beim Bestätigungsmerkmal gibt es hier keine Frist: Der
+     * Abmeldeknopf steht in jeder verteilten Nachricht, auch in einer, die seit
+     * Monaten im Postfach liegt. Er muss also so lange wirken, wie die
+     * Mitgliedschaft besteht.
+     *
+     * @param string $token Der Wert aus der Adresse des Abmeldeknopfes
+     *
+     * @return self|null Der Teilnehmer, oder null bei unbekanntem Merkmal
+     */
+    public static function findByAbmeldeToken(string $token): ?self
+    {
+        $token = trim($token);
+
+        // Zu kurz heißt: kann nicht aus dem Zufallsgenerator stammen. Die
+        // Prüfung hält Rateversuche von der Datenbank fern.
+        if (32 > \strlen($token)) {
+            return null;
+        }
+
+        return static::findOneBy(['abmeldeToken=?'], [$token]);
+    }
+
+    /**
+     * Liefert das Abmeldemerkmal und legt es bei Bedarf an.
+     *
+     * Bestandsteilnehmer haben noch keines — es entsteht deshalb beim ersten
+     * Versand einer Nachricht an sie und wird dann dauerhaft behalten. Der
+     * Umweg über diese Methode erspart eine Migration, die für jeden
+     * bestehenden Eintrag ein Merkmal erzeugen müsste.
+     *
+     * @return string Das Merkmal, 32 Zeichen
+     */
+    public function abmeldemerkmal(): string
+    {
+        if (32 <= \strlen((string) $this->abmeldeToken)) {
+            return (string) $this->abmeldeToken;
+        }
+
+        $this->abmeldeToken = bin2hex(random_bytes(16));
+        $this->save();
+
+        return $this->abmeldeToken;
     }
 
     /**
